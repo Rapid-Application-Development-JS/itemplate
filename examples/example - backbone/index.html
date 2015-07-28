@@ -15,11 +15,20 @@
     <script src="../../bin/itemplate.js"></script>
 </head>
 <body>
+<div>
+    <button style="width: 150px;">to normal DOM</button>
+</div>
 <div id="grid"></div>
-<script type="x-template" id="underscore-template">
-    <div class="box" id="box-<%= data.number %>"
+<script type="x-template" id="i-template">
+    <div class="box"
          style="top: <%= data.top %>px; left: <%= data.left %>px; background: rgb(0,0,<%= data.color %>);">
         <%= data.content %>
+    </div>
+</script>
+<script type="x-template" id="underscore-template">
+    <div class="box"
+         style="top: <%= top %>px; left: <%= left %>px; background: rgb(0,0,<%= color %>);">
+        <%= content %>
     </div>
 </script>
 <script src="index.js"></script>

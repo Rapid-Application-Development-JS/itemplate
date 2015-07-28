@@ -1,4 +1,5 @@
 var N = 100;
+var iDOM = true;
 
 var Box = Backbone.Model.extend({
     defaults: {
@@ -26,14 +27,20 @@ var Box = Backbone.Model.extend({
 var BoxView = Backbone.View.extend({
     className: 'box-view',
 
-    template: itemplate.compile($('#underscore-template').html()),
+    itemplate: itemplate.compile($('#i-template').html()),
+
+    template: _.template($('#underscore-template').html()),
 
     initialize: function() {
         this.model.bind('change', this.render, this);
     },
 
     render: function() {
-        IncrementalDOM.patch(this.el, this.template, this.model.attributes);
+        if (iDOM) {
+            IncrementalDOM.patch(this.el, this.itemplate, this.model.attributes);
+        } else {
+            this.$el.html(this.template(this.model.attributes));
+        }
         return this;
     }
 });
@@ -58,4 +65,9 @@ var backboneAnimate = function() {
 
 backboneInit();
 backboneAnimate();
+
+$('button').click(function () {
+    iDOM = !iDOM;
+    this.innerHTML = iDOM ? 'to normal DOM' : 'to incremental DOM';
+});
 
