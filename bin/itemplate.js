@@ -228,6 +228,8 @@ function escapeHTML(s) {
 function flushParser() {
     _result.length = 0;
     _currentTag = null;
+
+    _result.push('var lib=IncrementalDOM,o=lib.elementOpen,c=lib.elementClose, t=lib.text;');
 }
 
 function decodeTemplates(string, openTag, closeTag) {
@@ -319,7 +321,7 @@ function onopentag(name, attributes, unary) { // todo unary
             }
         }
 
-        writeCommand("elementOpen", args);
+        writeCommand("o", args);
     }
 
     _currentTag = name;
@@ -332,23 +334,23 @@ function ontext(text) {
     } else if (EXCEPTIONS.indexOf(_currentTag) === -1) {
         line = text.replace(BREAK_LINE, "").trim();
         if (line.length > 0)
-            writeCommand("text", decodeTemplates(line, _options.helpers.open, _options.helpers.close), true);
+            writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close), true);
     } else { // save format (break lines) for exception tags
         var lines = text.split(BREAK_LINE);
         for (var i = 0; i < lines.length; i++) {
             line = lines[i];
 
             if (BREAK_LINE.exec(line))
-                writeCommand("text", NEW_LINE, true);
+                writeCommand("t", NEW_LINE, true);
             else
-                writeCommand("text", decodeTemplates(line, _options.helpers.open, _options.helpers.close), true);
+                writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close), true);
         }
     }
 }
 
 function onclosetag(tagname) {
     if (DUTY.indexOf(tagname) === -1)
-        writeCommand("elementClose", tagname);
+        writeCommand("c", tagname);
 }
 
 var itemplate = {
