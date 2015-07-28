@@ -1,0 +1,33 @@
+{
+  "name": "itemplate",
+  "version": "0.1.0",
+  "description": "Library for converting templates into Incremental DOM rendering functions",
+  "main": "bin/itemplate.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Rapid-Application-Development-JS/itemplate.git"
+  },
+  "keywords": [
+    "incremental-dom",
+    "library",
+    "ejs",
+    "underscore",
+    "template",
+    "virtual-dom"
+  ],
+  "author": "Yuriy Luchaninov <y.luchaninov@mobidev.biz> (http://mobidev.biz/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Rapid-Application-Development-JS/itemplate/issues"
+  },
+  "devDependencies": {
+    "gulp": "~3.9.0",
+    "gulp-concat": "~2.6.0",
+    "gulp-umd": "~0.2.0",
+    "gulp-uglify": "~1.2.0",
+    "run-sequence": "~1.1.2"
+  }
+}

@@ -1,2 +1,2 @@
 # itemplate
-Library for converting templates into Incremental DOM rendering functions
+Library for converting your templates into incremental-dom rendering functions
