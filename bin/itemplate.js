@@ -148,7 +148,7 @@ var HTMLParser = function (html, handler) {
                 attrs.push({
                     name: name,
                     value: value,
-                    escaped: value.replace(/(^|[^\\])"/g, '$1\\\"') //"
+                    escaped: value.replace(/(^|[^\\])"/g, '$1\\\"')
                 });
             });
 
@@ -211,7 +211,6 @@ var _options = {
         '"': '&quot;',
         "'": '&#39;'
     },
-    format: true,
     ignore: "js",
     helpers: {
         open: "{%",
@@ -229,7 +228,7 @@ function flushParser() {
     _result.length = 0;
     _currentTag = null;
 
-    _result.push('var lib=IncrementalDOM,o=lib.elementOpen,c=lib.elementClose, t=lib.text;');
+    _result.push('var lib=IncrementalDOM,o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;');
 }
 
 function decodeTemplates(string, openTag, closeTag) {
@@ -263,7 +262,7 @@ function encodeTemplates(string) {
             return _options.helpers.open + escapeHTML(p1) + _options.helpers.close;
         })
         .replace(_options.template.evaluate, function (match, p1) {
-            return "<evaluate>" + p1.trim() + "</evaluate>";
+            return "<evaluate>" + p1.replace(BREAK_LINE, " ").trim() + "</evaluate>";
         });
 }
 
@@ -304,7 +303,7 @@ function attrsWrapp(array) {
 }
 
 // parsing of string
-function onopentag(name, attributes, unary) { // todo unary
+function onopentag(name, attributes, unary) {
     var attribs = attrsWrapp(attributes);
     var args = ["'" + name + "'"];
 
@@ -321,7 +320,10 @@ function onopentag(name, attributes, unary) { // todo unary
             }
         }
 
-        writeCommand("o", args);
+        if (unary)
+            writeCommand("v", args);
+        else
+            writeCommand("o", args);
     }
 
     _currentTag = name;

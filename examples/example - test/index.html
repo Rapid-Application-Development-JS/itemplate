@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>BackboneJS with incremental-dom</title>
+    <title>incremental-dom test</title>
 
-    <script src="//code.jquery.com/jquery-2.1.4.js"></script>
+    <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="//underscorejs.org/underscore-min.js"></script>
     <script src="//backbonejs.org/backbone-min.js"></script>
 
@@ -13,10 +13,20 @@
     <link rel="stylesheet" href="index.css"/>
 
     <script src="../../bin/itemplate.js"></script>
+
+    <script src="//fb.me/react-0.13.3.min.js"></script>
 </head>
 <body>
 <div>
-    <button style="width: 150px;">to normal DOM</button>
+    <p>In the example with incremental DOM we used the <a
+            href="https://github.com/Rapid-Application-Development-JS/itemplate">itemplate</a> library for the
+        compilation of the underscorejs template.</p>
+
+    <div id="timing">-</div>
+    <div>Count items: <input type="text" value="100"/></div>
+    <button class="button" id="backbone">BackboneJS</button>
+    <button class="button" id="incremental">BackboneJS + incremental-dom</button>
+    <button class="button" id="react">RecatJS</button>
 </div>
 <div id="grid"></div>
 <script type="x-template" id="i-template">

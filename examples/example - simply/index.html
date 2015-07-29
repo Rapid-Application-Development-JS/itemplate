@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>incremental-dom test</title>
+
+    <script src="//underscorejs.org/underscore-min.js"></script>
+    <script src="../lib/incremental-dom.js"></script>
+    <script src="../../bin/itemplate.js"></script>
+</head>
+<body>
+<div id="container"></div>
+<script type="x-template" id="underscore-template">
+    <h2>
+        <%- data.listTitle %>
+    </h2>
+
+    <ul>
+        <% _.each( data.listItems, function(listItem, i){ %>
+        <li class="row <%=(i % 2 == 1 ? ' even' : '')%>">
+            <%- listItem.name %>
+            <% if (listItem.hasOlympicGold){ %>
+            <em>*</em>
+            <% } %>
+        </li>
+        <% }); %>
+    </ul>
+
+    <% var showFootnote = _.any(
+    _.pluck( data.listItems, "hasOlympicGold" )
+    ); %>
+
+    <% if ( showFootnote ){ %>
+    <p style="font-size: 12px ;">
+        <em>* Olympic gold medalist</em>
+    </p>
+    <% } %>
+</script>
+<script>
+    var patch = IncrementalDOM.patch;
+
+    var templateData = {
+        listTitle: "Olympic Volleyball Players",
+        listItems: [
+            {
+                name: "Misty May-Treanor",
+                hasOlympicGold: true
+            },
+            {
+                name: "Kerri Walsh Jennings",
+                hasOlympicGold: true
+            },
+            {
+                name: "Jennifer Kessy",
+                hasOlympicGold: false
+            },
+            {
+                name: "April Ross",
+                hasOlympicGold: false
+            }
+        ]
+    };
+
+    var render = itemplate.compile(document.getElementById('underscore-template').innerHTML);
+    patch(document.querySelector('#container'), render, templateData);
+</script>
+</body>
+</html>
