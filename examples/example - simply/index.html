@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>incremental-dom test</title>
-
+    <link rel="stylesheet" href="theme/css/main.css" type="text/css"/>
     <script src="//underscorejs.org/underscore-min.js"></script>
     <script src="../lib/incremental-dom.js"></script>
     <script src="../../bin/itemplate.js"></script>
@@ -11,13 +11,14 @@
 <body>
 <div id="container"></div>
 <script type="x-template" id="underscore-template">
-    <h2>
-        <%- data.listTitle %>
-    </h2>
-
+        <div class="top-bar topcoat-navigation-bar">
+            <div class="topcoat-navigation-bar__item center full">
+                <h1 class="topcoat-navigation-bar__title"> <%- data.listTitle %></h1>
+            </div>
+        </div>
     <ul>
         <% _.each( data.listItems, function(listItem, i){ %>
-        <li class="row <%=(i % 2 == 1 ? ' even' : '')%>">
+        <li class="row <%=(i % 2 == 1 ? ' even' : '')%> topcoat-list__item">
             <%- listItem.name %>
             <% if (listItem.hasOlympicGold){ %>
             <em>*</em>
