@@ -105,7 +105,7 @@ var backboneInit;
     var BoxView = Backbone.View.extend({
         className: 'box-view',
 
-        itemplate: itemplate.compile($('#i-template').html()),
+        itemplate: itemplate.compile($('#i-template').html(), IncrementalDOM),
 
         template: _.template($('#underscore-template').html()),
 

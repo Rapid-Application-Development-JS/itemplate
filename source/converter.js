@@ -9,6 +9,7 @@ if (typeof special === 'object')
 
 // variables
 var _result = [];
+var _staticArrays = {};
 var _currentTag = null;
 var _options = {
     parameterName: "data",
@@ -32,8 +33,18 @@ var _options = {
     helpers: {
         open: "{%",
         close: "%}"
-    }
+    },
+    staticKey: "static-key"
 };
+
+function makeKey() {
+    var text = "", possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    for (var i = 0; i < 12; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
 
 function escapeHTML(s) {
     return s.replace(_options.escape, function (c) {
@@ -43,17 +54,21 @@ function escapeHTML(s) {
 
 function flushParser() {
     _result.length = 0;
+    _staticArrays = {};
     _currentTag = null;
 
-    _result.push('var lib=IncrementalDOM,o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;');
+    _result.push('var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;');
 }
 
 function decodeTemplates(string, openTag, closeTag) {
     var regex = new RegExp(openTag + '(.*?)' + closeTag, 'g');
     var prefix = true;
     var suffix = true;
+    var isStatic = true;
 
     var result = string.replace(regex, function (match, p1, index, string) {
+        isStatic = false;
+
         if (index !== 0)
             p1 = "\'+" + p1;
         else
@@ -67,7 +82,10 @@ function decodeTemplates(string, openTag, closeTag) {
         return p1;
     });
 
-    return (prefix ? '\'' : '') + result + (suffix ? '\'' : '');
+    return {
+        isStatic: isStatic,
+        value: (prefix ? '\'' : '') + result + (suffix ? '\'' : '')
+    };
 }
 
 function encodeTemplates(string) {
@@ -123,18 +141,39 @@ function attrsWrapp(array) {
 function onopentag(name, attributes, unary) {
     var attribs = attrsWrapp(attributes);
     var args = ["'" + name + "'"];
+    var staticAttrs = [], attr;
+    var staticKey = false;
+
+    if (attribs.hasOwnProperty(_options.staticKey)) {
+        staticKey = attribs[_options.staticKey] || "'" + makeKey() + "'";
+        delete attribs[_options.staticKey];
+    }
 
     if (DUTY.indexOf(name) === -1) {
         for (var key in attribs) {
-            if (attribs.hasOwnProperty(key)) {
-                if (args.length === 1) {
-                    args.push(null);
-                    args.push(null);
-                }
+            if (!attribs.hasOwnProperty(key))
+                continue;
 
-                args.push("'" + key + "'");
-                args.push(decodeTemplates(attribs[key], _options.helpers.open, _options.helpers.close));
+            if (args.length == 1) {
+                args.push(null);
+                args.push(null);
             }
+
+            attr = decodeTemplates(attribs[key], _options.helpers.open, _options.helpers.close);
+            if (staticKey && attr.isStatic) {
+                staticAttrs.push("'" + key + "'");
+                staticAttrs.push(attr.value);
+            } else {
+                args.push("'" + key + "'");
+                args.push(attr.value);
+            }
+        }
+
+        if (staticKey) {
+            _staticArrays[staticKey] = "[" + staticAttrs.join(",") + "]";
+
+            args[1] = "'" + makeKey() + "'";
+            args[2] = staticKey;
         }
 
         if (unary)
@@ -153,7 +192,7 @@ function ontext(text) {
     } else if (EXCEPTIONS.indexOf(_currentTag) === -1) {
         line = text.replace(BREAK_LINE, "").trim();
         if (line.length > 0)
-            writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close), true);
+            writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close).value, true);
     } else { // save format (break lines) for exception tags
         var lines = text.split(BREAK_LINE);
         for (var i = 0; i < lines.length; i++) {
@@ -162,7 +201,7 @@ function ontext(text) {
             if (BREAK_LINE.exec(line))
                 writeCommand("t", NEW_LINE, true);
             else
-                writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close), true);
+                writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close).value, true);
         }
     }
 }
@@ -173,7 +212,7 @@ function onclosetag(tagname) {
 }
 
 var itemplate = {
-    compile: function (string) {
+    compile: function (string, library) {
         flushParser();
         HTMLParser(encodeTemplates(string), {
             start: onopentag,
@@ -181,7 +220,15 @@ var itemplate = {
             end: onclosetag
         });
 
-        return new Function(_options.parameterName, _result.join(""));
+        var fn = "";
+        for (var key in _staticArrays) {
+            if (_staticArrays.hasOwnProperty(key)) {
+                fn += "var " + key + "=" + _staticArrays[key] + ";";
+            }
+        }
+        fn += "return function(" + _options.parameterName + "){" + _result.join("") + "}";
+
+        return (new Function('lib',fn))(library);
     },
     options: function (options) {
         // mix options
