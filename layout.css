@@ -1,0 +1,125 @@
+@keyframes shake {
+	0%, 100% {
+		transform: translate3d(0, 0, 0);
+	}
+
+	10%, 30%, 50%, 70%, 90% {
+		transform: translate3d(-10px, 0, 0);
+	}
+
+	20%, 40%, 60%, 80% {
+		transform: translate3d(10px, 0, 0);
+	}
+}
+
+.main {
+	overflow: hidden;
+	-webkit-user-select: none; /* Chrome all / Safari all */
+	-moz-user-select: none; /* Firefox all */
+	-ms-user-select: none; /* IE 10+ */
+
+	/* No support for these yet, use at own risk */
+	-o-user-select: none;
+	user-select: none;
+}
+
+.pointer-section {
+	height: 60%;
+	position: relative;
+}
+
+/*.pointer-section .section__header {*/
+	/*padding: 10px 30px;*/
+	/*text-align: center;*/
+	/*font-size: 2em;*/
+	/*height: 50px;*/
+	/*vertical-align: middle;*/
+	/*margin: auto;*/
+/*}*/
+
+.pointer-section .topcoat-checkbox {
+	text-align: left;
+}
+
+.pointer-wrap {
+	position: absolute;
+	top: 50px;
+	bottom: 0px;
+	/*left: 0;*/
+	/*right: 0;*/
+	/*display: inline-block;*/
+	/*height: 100%;*/
+	width: 100%;
+	vertical-align: middle;
+	text-align: center;
+	overflow: hidden;
+	background: #454646;
+	font-size: 5em;
+	text-align: center;
+	-webkit-user-select: none; /* Chrome all / Safari all */
+	-moz-user-select: none; /* Firefox all */
+	-ms-user-select: none; /* IE 10+ */
+
+	/* No support for these yet, use at own risk */
+	-o-user-select: none;
+	user-select: none;
+}
+
+.pointer-wrap:before {
+	content: '';
+	display: inline-block;
+	vertical-align: middle;
+	height: 100%;
+}
+
+.pointer {
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	margin: -10px -10px;
+	background-color: #17b7f9;
+	display: none;
+	border-radius: 50%;
+}
+
+.pointer-wrap .label {
+	position: absolute;
+	left: 20px;
+	top: 10px;
+	right: 10px;
+}
+
+.pointer-console {
+	position: absolute;
+	top: 60%;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	overflow: hidden;
+	background: #595b5b;
+	padding: 10px 30px;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#console {
+	height: auto;
+	width: 120px;
+	margin: 0 auto;
+}
+
+@media screen and (max-width: 480px) {
+	.pointer-wrap {
+		font-size: 2.5rem;
+	}
+}
+
+@media screen and (max-height: 700px) {
+	.pointer-section {
+		height: 50%;
+	}
+
+	.pointer-console {
+		top: 50%;
+	}
+}
