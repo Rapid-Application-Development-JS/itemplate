@@ -62,7 +62,7 @@
         ]
     };
 
-    var render = itemplate.compile(document.getElementById('underscore-template').innerHTML);
+    var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
     patch(document.querySelector('#container'), render, templateData);
 </script>
 </body>
