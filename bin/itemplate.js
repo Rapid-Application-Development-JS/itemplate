@@ -361,14 +361,10 @@ function onopentag(name, attributes, unary) {
         }
 
         if (unary)
-        if (_helpers.hasOwnProperty(name)) {
-            //writeLine("helpers['" + name + "'](" +
-            //        decodeTemplates(JSON.stringify(attribs), _options.accessory.open, _options.accessory.close).value +
-            //        ");", true);
-            writeLine("helpers['" + name + "'](" + decodeAttrs(attribs) + ");", true);
-        } else {
-            writeCommand("v", args);
-        }
+            if (_helpers.hasOwnProperty(name))
+                writeLine("helpers['" + name + "'](" + decodeAttrs(attribs) + ");", true);
+            else
+                writeCommand("v", args);
         else
             writeCommand("o", args);
     }

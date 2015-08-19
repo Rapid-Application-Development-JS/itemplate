@@ -9,36 +9,41 @@
 </head>
 <body>
 <div id="container"></div>
-<script type="x-template" id="underscore-template">
-    <div class="topcoat-navigation-bar__title"> <%- data.listTitle %></div>
-    <ul>
-        <% var a = 45, size='12px'; _.each( data.listItems, function(listItem, i){ %>
-        <li class="row <%=(i % 2 == 1 ? ' even' : '')%> topcoat-list__item">
-            <%- listItem.name %>
-            <% if (listItem.hasOlympicGold){ %>
-            <em>*</em>
-            <% } %>
-        </li>
-        <% }); %>
-    </ul>
 
-    <my-console font="12px" data="<%=a+7+8%>"/>
-
-    <my-footnote font="<%=size%>">
-        <em>* Olympic gold medalist</em>
-    </my-footnote>
-
-    <!--<% var showFootnote = _.any(-->
-    <!--_.pluck( data.listItems, "hasOlympicGold" )-->
-    <!--); %>-->
-    <!--<p style="font-size: 12px;">-->
-        <!--<em>* Olympic gold medalist</em>-->
-    <!--</p>-->
-    <!--<% if ( showFootnote ){ %>-->
-    <!--<% } %>-->
+<script type="x-template" id="list-item">
+    <li class="row <%=(data.i % 2 == 1 ? ' even' : '')%> topcoat-list__item">
+        <%- data.name %>
+        <% if (data.hasOlympicGold){ %>
+        <em>*</em>
+        <% } %>
+    </li>
 </script>
+
+<script type="x-template" id="footnote-template">
+    <% var showFootnote = _.any(
+    _.pluck(data.listItems, "hasOlympicGold")
+    ); %>
+
+    <% if (showFootnote){ %>
+    <p style="font-size: 12px ;">
+        <em>* Olympic gold medalist</em>
+    </p>
+    <% } %>
+
+    <!--inner helper-->
+    <my-console data="<%=7+8%>"/>
+</script>
+
+<script type="x-template" id="underscore-template">
+    <div> <%- data.listTitle %></div>
+    <my-list listItems="<%=data.listItems%>"/>
+    <my-footnote listItems="<%=data.listItems%>"/>
+</script>
+
 <script>
     var patch = IncrementalDOM.patch;
+    var elementOpen = IncrementalDOM.elementOpen;
+    var elementClose = IncrementalDOM.elementClose;
 
     var templateData = {
         listTitle: "Olympic Volleyball Players",
@@ -62,16 +67,37 @@
         ]
     };
 
+    var itemTemplate = document.getElementById('list-item').innerHTML;
+    var footnoteTemplate = document.getElementById('footnote-template').innerHTML;
+    var rootTemplate = document.getElementById('underscore-template').innerHTML;
+
+    // you can register js function as simply helper
     itemplate.registerHelper('my-console', function (attrs) {
         console.log(attrs);
     });
 
-    itemplate.registerHelper('my-footnote', function (attrs, contentFn) {
-        console.log('my-footnote', attrs, contentFn);
+    // you can use internal template as single tag
+    var footnoteRenderFn = itemplate.compile(footnoteTemplate, IncrementalDOM);
+    itemplate.registerHelper('my-footnote', footnoteRenderFn);
+
+    // also you can use render function as part in js helper function
+    var itemRenderFn = itemplate.compile(itemTemplate, IncrementalDOM);
+    itemplate.registerHelper('my-list', function (attrs) {
+        elementOpen('ul');
+        _.each(attrs.listItems, function (listItem, i) {
+            // render single list item
+            itemRenderFn({
+                i: i,
+                name: listItem.name,
+                hasOlympicGold: listItem.hasOlympicGold
+            });
+        });
+        elementClose('ul');
     });
 
-    var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
-    patch(document.querySelector('#container'), render, templateData);
+    // main template rendering
+    var rootRenderFn = itemplate.compile(rootTemplate, IncrementalDOM);
+    patch(document.querySelector('#container'), rootRenderFn, templateData);
 </script>
 </body>
 </html>
