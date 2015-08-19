@@ -191,6 +191,7 @@ if (typeof special === 'object')
     special[DUTY] = true;
 
 // variables
+var _helpers = {};
 var _result = [];
 var _staticArrays = {};
 var _currentTag = null;
@@ -213,7 +214,7 @@ var _options = {
         "'": '&#39;'
     },
     ignore: "js",
-    helpers: {
+    accessory: {
         open: "{%",
         close: "%}"
     },
@@ -274,10 +275,10 @@ function decodeTemplates(string, openTag, closeTag) {
 function encodeTemplates(string) {
     return string
         .replace(_options.template.interpolate, function (match, p1) {
-            return _options.helpers.open + p1 + _options.helpers.close;
+            return _options.accessory.open + p1 + _options.accessory.close;
         })
         .replace(_options.template.escape, function (match, p1) {
-            return _options.helpers.open + escapeHTML(p1) + _options.helpers.close;
+            return _options.accessory.open + escapeHTML(p1) + _options.accessory.close;
         })
         .replace(_options.template.evaluate, function (match, p1) {
             return "<evaluate>" + p1.replace(BREAK_LINE, " ").trim() + "</evaluate>";
@@ -342,7 +343,7 @@ function onopentag(name, attributes, unary) {
                 args.push(null);
             }
 
-            attr = decodeTemplates(attribs[key], _options.helpers.open, _options.helpers.close);
+            attr = decodeTemplates(attribs[key], _options.accessory.open, _options.accessory.close);
             if (staticKey && attr.isStatic) {
                 staticAttrs.push("'" + key + "'");
                 staticAttrs.push(attr.value);
@@ -360,12 +361,34 @@ function onopentag(name, attributes, unary) {
         }
 
         if (unary)
+        if (_helpers.hasOwnProperty(name)) {
+            //writeLine("helpers['" + name + "'](" +
+            //        decodeTemplates(JSON.stringify(attribs), _options.accessory.open, _options.accessory.close).value +
+            //        ");", true);
+            writeLine("helpers['" + name + "'](" + decodeAttrs(attribs) + ");", true);
+        } else {
             writeCommand("v", args);
+        }
         else
             writeCommand("o", args);
     }
 
     _currentTag = name;
+}
+
+function decodeAttrs(obj) {
+    var result = ["{"];
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            if (result.length > 1)
+                result.push(",");
+
+            result.push(key + ":" +decodeTemplates(obj[key], _options.accessory.open, _options.accessory.close).value);
+        }
+    }
+    result.push("}");
+
+    return result.join("");
 }
 
 function ontext(text) {
@@ -375,7 +398,7 @@ function ontext(text) {
     } else if (EXCEPTIONS.indexOf(_currentTag) === -1) {
         line = text.replace(BREAK_LINE, "").trim();
         if (line.length > 0)
-            writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close).value, true);
+            writeCommand("t", decodeTemplates(line, _options.accessory.open, _options.accessory.close).value, true);
     } else { // save format (break lines) for exception tags
         var lines = text.split(BREAK_LINE);
         for (var i = 0; i < lines.length; i++) {
@@ -384,7 +407,7 @@ function ontext(text) {
             if (BREAK_LINE.exec(line))
                 writeCommand("t", NEW_LINE, true);
             else
-                writeCommand("t", decodeTemplates(line, _options.helpers.open, _options.helpers.close).value, true);
+                writeCommand("t", decodeTemplates(line, _options.accessory.open, _options.accessory.close).value, true);
         }
     }
 }
@@ -411,7 +434,7 @@ var itemplate = {
         }
         fn += "return function(" + _options.parameterName + "){" + _result.join("") + "}";
 
-        return (new Function('lib',fn))(library);
+        return (new Function('lib', 'helpers', fn))(library, _helpers);
     },
     options: function (options) {
         // mix options
@@ -419,6 +442,12 @@ var itemplate = {
             if (options.hasOwnProperty(key))
                 _options[key] = options[key];
         }
+    },
+    registerHelper: function (name, fn) {
+        _helpers[name] = fn;
+    },
+    unregisterHelper: function (name) {
+        delete _helpers[name];
     }
 };
 return itemplate;
