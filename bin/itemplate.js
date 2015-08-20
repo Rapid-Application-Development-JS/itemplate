@@ -197,9 +197,6 @@ var _staticArrays = {};
 var _currentTag = null;
 var _options = {
     parameterName: "data",
-    functionName: function (filename, path) {
-        return filename;
-    },
     template: {
         evaluate: /<%([\s\S]+?)%>/g,
         interpolate: /<%=([\s\S]+?)%>/g,
@@ -213,7 +210,6 @@ var _options = {
         '"': '&quot;',
         "'": '&#39;'
     },
-    ignore: "js",
     accessory: {
         open: "{%",
         close: "%}"

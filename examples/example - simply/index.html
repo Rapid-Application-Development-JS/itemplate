@@ -2,36 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>incremental-dom test</title>
-    <link rel="stylesheet" href="theme/css/main.css" type="text/css"/>
-    <script src="//underscorejs.org/underscore-min.js"></script>
+    <title>incremental-dom</title>
     <script src="../lib/incremental-dom.js"></script>
     <script src="../../bin/itemplate.js"></script>
+
+    <style type="text/css">
+        .row {
+            border-bottom: #333434;
+        }
+        .even {
+            background-color: #134f7f;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <div id="container"></div>
 <script type="x-template" id="underscore-template">
-        <div class="top-bar topcoat-navigation-bar">
-            <div class="topcoat-navigation-bar__item center full">
-                <h1 class="topcoat-navigation-bar__title"> <%- data.listTitle %></h1>
-            </div>
-        </div>
+    <div> <%- data.listTitle %></div>
     <ul>
-        <% _.each( data.listItems, function(listItem, i){ %>
-        <li class="row <%=(i % 2 == 1 ? ' even' : '')%> topcoat-list__item">
+        <%  var showFootnote = false;
+            data.listItems.forEach(function(listItem, i) {
+        %>
+        <li class="row <%=(i % 2 == 1 ? ' even' : '')%>">
             <%- listItem.name %>
-            <% if (listItem.hasOlympicGold){ %>
+            <% if (listItem.hasOlympicGold){
+            showFootnote = true; %>
             <em>*</em>
             <% } %>
         </li>
-        <% }); %>
+        <%  }); %>
     </ul>
 
-    <% var showFootnote = _.any(
-    _.pluck( data.listItems, "hasOlympicGold" )
-    ); %>
-
-    <% if ( showFootnote ){ %>
+    <% if (showFootnote){ %>
     <p style="font-size: 12px ;">
         <em>* Olympic gold medalist</em>
     </p>
