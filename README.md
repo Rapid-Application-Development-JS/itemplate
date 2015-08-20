@@ -1,9 +1,10 @@
 # itemplate
 Library for converting your templates into incremental-dom rendering functions.
-## Demo
-[test](http://rapid-application-development-js.github.io/itemplate/)
 
-This library makes it easy and comfortable to use [Incremental-DOM](https://github.com/google/incremental-dom) library that optimizes work with DOM. It's converting ordinary 'underscore-type' templates into  Incremental-DOM templates.
+This library makes it easy and comfortable to use [Incremental-DOM](https://github.com/google/incremental-dom) library.
+It's converting ordinary 'underscore-type' templates into  Incremental-DOM templates.
+
+[Example](http://rapid-application-development-js.github.io/itemplate/)
 
 First step in order to use `itemplate` is creating your 'underscore-type' template, for example:
 
@@ -16,7 +17,7 @@ First step in order to use `itemplate` is creating your 'underscore-type' templa
 
 ```
 
-and then compile it like this:
+and then compile it:
 
 ```javascript
     var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
