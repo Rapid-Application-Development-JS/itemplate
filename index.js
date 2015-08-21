@@ -3,6 +3,7 @@ var totalTime;
 var loopCount;
 var timeout;
 var $timing = $('#timing');
+var type = '';
 
 //benchmark
 function benchmarkLoop(fn) {
@@ -12,7 +13,8 @@ function benchmarkLoop(fn) {
     totalTime += endDate - startDate;
     loopCount++;
     if (loopCount % 20 === 0) {
-        $timing.text('Performed ' + loopCount + ' iterations in ' + totalTime + ' ms (average ' + (totalTime / loopCount).toFixed(2) + ' ms per loop).');
+        $timing.text(type + ': Performed ' + loopCount + ' iterations in ' + totalTime +
+            ' ms (average ' + (totalTime / loopCount).toFixed(2) + ' ms per loop).');
     }
     timeout = _.defer(benchmarkLoop, fn);
 }
@@ -143,16 +145,19 @@ var backboneInit;
 })();
 
 $('#backbone').click(function () {
+    type = 'backbone';
     benchmarkFlash();
     backboneInit(false);
 });
 
 $('#incremental').click(function () {
+    type = 'incremental';
     benchmarkFlash();
     backboneInit(true);
 });
 
 $('#react').click(function () {
+    type = 'react';
     benchmarkFlash();
     reactInit();
 });

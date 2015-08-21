@@ -63,12 +63,12 @@ div[data-role=view] {
     height: auto;
 }
 
-
-
-
-
-
-
+a:link {
+    color: #fff;
+}
+a:visited {
+    color: #fff;
+}
 
 /* Mainly styles*/
 
@@ -176,6 +176,7 @@ div[data-role=view] {
     text-shadow: 0 1px 0 rgba(255,255,255,0.1);
     border-top: 1px solid rgba(255,255,255,0.1);
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    line-height: 46px;
 }
 .section img{
     width: 200px;
@@ -195,10 +196,12 @@ div[data-role=view] {
 /*-----------------------------------*/
 .receiver {
     padding: 5px;
+    color: yellow;
     margin: 5px 0;
     background: #454646;
     min-height: 24px;
     line-height: 24px;
+    text-align: center;
 }
 .text-overflow {
     text-overflow: ellipsis !important;
