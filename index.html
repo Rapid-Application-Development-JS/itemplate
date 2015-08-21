@@ -9,38 +9,57 @@
     <script src="//backbonejs.org/backbone-min.js"></script>
 
     <script src="//rawgithub.com/Rapid-Application-Development-JS/itemplate/master/examples/lib/incremental-dom.js"></script>
-
+    <link rel="stylesheet" href="layout.css" type="text/css"/>
     <link rel="stylesheet" href="index.css"/>
+    <link rel="stylesheet" href="theme/css/main.css" type="text/css"/>
 
     <script src="//rawgithub.com/Rapid-Application-Development-JS/itemplate/master/bin/itemplate.min.js"></script>
 
     <script src="//fb.me/react-0.13.3.min.js"></script>
 </head>
 <body>
-<div>
-    <p>In the example with incremental DOM we used the <a
-            href="https://github.com/Rapid-Application-Development-JS/itemplate">itemplate</a> library for the
-        compilation of the underscorejs template.</p>
+<div class="main">
+    <div class="top-bar topcoat-navigation-bar">
+        <div class="topcoat-navigation-bar__item center full">
+            <h1 class="topcoat-navigation-bar__title">Itemplate Example</h1>
+        </div>
+    </div>
+        <!--<div id="pointer" class="section__content pointer-wrap">-->
+        <!--&lt;!&ndash;<div id="holder" style="background-color: #288edf; width: 100px; height: 100px; display: inline-block; vertical-align: middle"></div>&ndash;&gt;-->
+        <!--</div>-->
+        <div class="section__header">
+            In the example with incremental DOM we used the <a
+                    href="https://github.com/Rapid-Application-Development-JS/itemplate">itemplate</a> library for the
+                compilation of the underscorejs template.
+        </div>
+        <div id="timing" class="receiver">-</div>
+        <div>
 
-    <div id="timing">-</div>
-    <div>Count items: <input type="text" value="100"/></div>
-    <button class="button" id="backbone">BackboneJS</button>
-    <button class="button" id="incremental">BackboneJS + incremental-dom</button>
-    <button class="button" id="react">RecatJS</button>
+
+                <div class="section__header">Count items: </div>
+                <input class="topcoat-text-input" type="text" value="100"/>
+            <div>
+                <div class="section__header">Items Render Type:</div>
+                <button class="topcoat-button" id="backbone">BackboneJS</button>
+                <button class="topcoat-button" id="incremental">BackboneJS + incremental-dom</button>
+                <button class="topcoat-button" id="react">ReactJS</button>
+            </div>
+            <div id="grid"></div>
+            <script type="x-template" id="i-template">
+                <div class="box"
+                     style="top: <%= data.top %>px; left: <%= data.left %>px; background: rgb(0,0,<%= data.color %>);">
+                    <%= data.content %>
+                </div>
+            </script>
+            <script type="x-template" id="underscore-template">
+                <div class="box"
+                     style="top: <%= top %>px; left: <%= left %>px; background: rgb(0,0,<%= color %>);">
+                    <%= content %>
+                </div>
+            </script>
+        </div>
 </div>
-<div id="grid"></div>
-<script type="x-template" id="i-template">
-    <div class="box"
-         style="top: <%= data.top %>px; left: <%= data.left %>px; background: rgb(0,0,<%= data.color %>);">
-        <%= data.content %>
-    </div>
-</script>
-<script type="x-template" id="underscore-template">
-    <div class="box"
-         style="top: <%= top %>px; left: <%= left %>px; background: rgb(0,0,<%= color %>);">
-        <%= content %>
-    </div>
-</script>
+
 <script src="index.js"></script>
 </body>
 </html>
