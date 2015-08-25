@@ -1,5 +1,5 @@
 {
-  "name": "itemplate",
+  "name": "idom-template",
   "version": "0.1.0",
   "description": "Library for converting templates into Incremental DOM rendering functions",
   "main": "bin/itemplate.js",
@@ -29,5 +29,15 @@
     "gulp-umd": "~0.2.0",
     "gulp-uglify": "~1.2.0",
     "run-sequence": "~1.1.2"
-  }
+  },
+  "contributors": [
+    {
+      "email": "y.luchaninov@mobidev.biz",
+      "name": "Yuriy Luchaninov"
+    },
+    {
+      "email": "a.trofimenko@mobidev.biz",
+      "name": "Anton Trofimenko"
+    }
+  ]
 }
