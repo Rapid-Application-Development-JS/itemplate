@@ -104,6 +104,13 @@ This one and more complicated examples can be viewed in the directory **[example
 
 You may also compare the performance of BackboneJS, BackboneJS + incremental-dom, ReactJS 0.13.3: **[DEMO](http://rapid-application-development-js.github.io/itemplate/)**
 
+## npm
+More over then include library directly, You also can use `npm` for installation:
+
+```bash
+npm install idom-template --save
+```
+
 ## Include
 ```html
     <script src="../lib/incremental-dom.js"></script>
