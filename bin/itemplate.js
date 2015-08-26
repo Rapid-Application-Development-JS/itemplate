@@ -182,10 +182,10 @@ var HTMLParser = function (html, handler) {
     }
 };
 // Consts
-const EXCEPTIONS = ["pre", "script"];
-const DUTY = ["evaluate"];
-const BREAK_LINE = /(\r\n|\n|\r)/gm;
-const NEW_LINE = "String.fromCharCode(10)";
+var EXCEPTIONS = ["pre", "script"];
+var DUTY = ["evaluate"];
+var BREAK_LINE = /(\r\n|\n|\r)/gm;
+var NEW_LINE = "String.fromCharCode(10)";
 
 if (typeof special === 'object')
     special[DUTY] = true;
