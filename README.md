@@ -130,6 +130,35 @@ patch(containerElement, renderFn, templateData);
 * You should be careful with the `'` symbol in templates; if it's mentioned in the text, it should be screened as `\'`. This will be fixed in further versions.
 * The data is transferred to the template as one object; so if you don't want to transfer data via closure in templates, you should work with one object that will be transferred as a [**parameter**](#parameterName) to `path`.
 
+####unwrap
+Be careful, if the second parameter is absent during the compilation of the template, which means you won't transmit the link to the library:
+
+```javascript
+var renderFn = itemplate.compile(templateStr[, IncrementalDOM]);
+```
+
+In this case it's not a rendering function that will be compiled, it will be just a function without closure and wrapping:
+
+```javascript
+function (data, lib, helpers){
+        // throw error or something if not lib and helpers
+        var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;
+        o('div', null, null, 'class', 'box');
+            t( data.content );
+        c('div');
+        helpers['my-console']({data:7+8});
+}
+```
+
+In this case you should call it and transmit compilation parameters as follows:
+
+```javascript
+patch(document.getElementById('container'), function () {
+    template(data, IncrementalDOM, customHelpers);
+});
+```
+It allows to work with templates with more flexibility; for example, call several templates in one rendering function, or introduce additional logic, such as filtration etc.
+
 ###Options
 You may set compiling option as object to the library:
 
