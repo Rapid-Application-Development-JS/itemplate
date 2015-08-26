@@ -232,6 +232,8 @@ function onclosetag(tagname) {
 
 var itemplate = {
     compile: function (string, library) {
+        var resultFn;
+
         flushParser();
         HTMLParser(encodeTemplates(string), {
             start: onopentag,
@@ -245,9 +247,15 @@ var itemplate = {
                 fn += "var " + key + "=" + _staticArrays[key] + ";";
             }
         }
-        fn += "return function(" + _options.parameterName + "){" + _result.join("") + "}";
 
-        return (new Function('lib', 'helpers', fn))(library, _helpers);
+        if (library) {
+            fn += "return function(" + _options.parameterName + "){" + _result.join("") + "}";
+            resultFn = (new Function('lib', 'helpers', fn))(library, _helpers);
+        } else {
+            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _result.join(""));
+        }
+
+        return resultFn;
     },
     options: function (options) {
         // mix options
