@@ -1,4 +1,4 @@
-# itemplate
+# idom-template
 
 > Now you can speed up and optimize your application, which once used standard templates by incremental DOM. You may read more about it [here](https://medium.com/google-developers/introducing-incremental-dom-e98f79ce2c5f).
 
@@ -65,7 +65,7 @@ var renderFn = itemplate.compile(templateStr, IncrementalDOM);
 IncrementalDOM.patch(document.querySelector('#container'), renderFn, templateData);
 ```
 
-In this case your template will be compiled by **itemplate** into the following JS function:
+In this case your template will be compiled by **idom-template** into the following JS function:
  
 ```javascript
 function (data) {
