@@ -30,7 +30,7 @@
 </div>
 <div id="grid"></div>
 <script type="x-template" id="i-template">
-    <div class="box" static-key
+    <div class="box" static-key="<% data.id %>" static-array="box"
          style="top: <%= data.top %>px; left: <%= data.left %>px; background: rgb(0,0,<%= data.color %>);">
         <%= data.content %>
     </div>

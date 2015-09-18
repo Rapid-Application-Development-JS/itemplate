@@ -84,7 +84,8 @@ var backboneInit;
             top: 0,
             left: 0,
             color: 0,
-            content: 0
+            content: 0,
+            id: 0
         },
 
         initialize: function () {
@@ -97,7 +98,8 @@ var backboneInit;
                 top: Math.ceil(Math.sin(count / 10) * 10),
                 left: Math.ceil(Math.cos(count / 10) * 10),
                 color: (count) % 255,
-                content: count % 100
+                content: count % 100,
+                id: this.cid
             });
         }
     });

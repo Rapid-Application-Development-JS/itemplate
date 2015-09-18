@@ -218,7 +218,8 @@ var _options = {
         open: "{%",
         close: "%}"
     },
-    staticKey: "static-key"
+    staticKey: "static-key",
+    staticArray: "static-array"
 };
 
 function makeKey() {
@@ -268,7 +269,8 @@ function decodeTemplates(string, openTag, closeTag) {
 
     return {
         isStatic: isStatic,
-        value: (prefix ? '\'' : '') + result + (suffix ? '\'' : '')
+        value: (prefix ? '\'' : '') + result + (suffix ? '\'' : ''),
+        unwrap: result
     };
 }
 
@@ -327,9 +329,22 @@ function onopentag(name, attributes, unary) {
     var args = ["'" + name + "'"];
     var staticAttrs = [], attr;
     var staticKey = false;
+    var keyFlag = false;
+    var staticArray = false;
 
+    // static array
+    if (attribs.hasOwnProperty(_options.staticArray)) {
+        staticArray = decodeTemplates(attribs[_options.staticArray], '<evaluate>', '</evaluate>');
+        staticArray = staticArray.isStatic ? staticArray.unwrap: staticArray.value;
+        staticArray = attribs[_options.staticArray] ? staticArray : makeKey();
+        delete attribs[_options.staticArray];
+    }
+
+    // static key
     if (attribs.hasOwnProperty(_options.staticKey)) {
-        staticKey = attribs[_options.staticKey] ||makeKey();
+        staticKey = decodeTemplates(attribs[_options.staticKey],  '<evaluate>', '</evaluate>');
+        keyFlag= staticKey.isStatic;
+        staticKey = attribs[_options.staticKey] ? staticKey.value : makeKey();
         delete attribs[_options.staticKey];
     }
 
@@ -344,7 +359,7 @@ function onopentag(name, attributes, unary) {
             }
 
             attr = decodeTemplates(attribs[key], _options.accessory.open, _options.accessory.close);
-            if (staticKey && attr.isStatic) {
+            if (staticArray && attr.isStatic) {
                 staticAttrs.push("'" + key + "'");
                 staticAttrs.push(attr.value);
             } else {
@@ -353,11 +368,15 @@ function onopentag(name, attributes, unary) {
             }
         }
 
-        if (staticKey) {
-            _staticArrays[staticKey] = "[" + staticAttrs.join(",") + "]";
-
+        if (staticArray && !staticKey) {
             args[1] = "'" + makeKey() + "'";
-            args[2] = staticKey;
+        } else if (staticKey) {
+            args[1] = keyFlag ? "'" + staticKey + "'" : staticKey;
+        }
+
+        if (staticArray) {
+            _staticArrays[staticArray] = "[" + staticAttrs.join(",") + "]";
+            args[2] = staticArray;
         }
 
         if (unary)
