@@ -146,7 +146,7 @@ function onopentag(name, attributes, unary) {
     var staticKey = false;
 
     if (attribs.hasOwnProperty(_options.staticKey)) {
-        staticKey = attribs[_options.staticKey] || "'" + makeKey() + "'";
+        staticKey = attribs[_options.staticKey] ||makeKey();
         delete attribs[_options.staticKey];
     }
 
