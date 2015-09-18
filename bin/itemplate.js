@@ -334,7 +334,7 @@ function onopentag(name, attributes, unary) {
 
     // static array
     if (attribs.hasOwnProperty(_options.staticArray)) {
-        staticArray = decodeTemplates(attribs[_options.staticArray], '<evaluate>', '</evaluate>');
+        staticArray = decodeTemplates(attribs[_options.staticArray], _options.accessory.open, _options.accessory.close);
         staticArray = staticArray.isStatic ? staticArray.unwrap: staticArray.value;
         staticArray = attribs[_options.staticArray] ? staticArray : makeKey();
         delete attribs[_options.staticArray];
@@ -342,7 +342,7 @@ function onopentag(name, attributes, unary) {
 
     // static key
     if (attribs.hasOwnProperty(_options.staticKey)) {
-        staticKey = decodeTemplates(attribs[_options.staticKey],  '<evaluate>', '</evaluate>');
+        staticKey = decodeTemplates(attribs[_options.staticKey], _options.accessory.open, _options.accessory.close);
         keyFlag= staticKey.isStatic;
         staticKey = attribs[_options.staticKey] ? staticKey.value : makeKey();
         delete attribs[_options.staticKey];
