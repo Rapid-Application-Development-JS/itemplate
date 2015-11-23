@@ -1,5 +1,6 @@
 /**
  * Based on https://github.com/tautologistics/node-htmlparser
+ * and https://github.com/deanmao/node-htmlparser/commit/fdcdd0a3f421e7ca28aa10816b79e5d78b1cfba8
  */
 
     function inherits (ctor, superCtor) {
@@ -201,16 +202,13 @@
         }
     };
 
-    Parser.re_parseTag = /\s*(\/?)\s*([^\s>\/]+)(\s*)\??(>?)/g;
+    Parser.re_parseTag =/\s*(\/?)\s*([^\s>\/]+)(\s*)\??(>?)/g;
     Parser.prototype._parseTag = function Parser$_parseTag () {
         var state = this._state;
         Parser.re_parseTag.lastIndex = state.pos;
         var match = Parser.re_parseTag.exec(state.data);
 
         if (match) {
-            console.log(1)
-            console.log(state.data)
-
             if (!match[1] && match[2].substr(0, 3) === '!--') {
                 state.mode = Mode.Comment;
                 state.pos += 3;
@@ -232,13 +230,13 @@
                 return;
             }
             var raw;
-            //if (match[4] === '>') { // todo fix with new html attributes
-            //    state.mode = Mode.Text;
-            //    raw = match[0].substr(0, match[0].length - 1);
-            //} else {
-            //    state.mode = Mode.Attr;
-            //    raw = match[0];
-            //}
+            if (match[4] === '>') { // todo fix with new html attributes
+                state.mode = Mode.Text;
+                raw = match[0].substr(0, match[0].length - 1);
+            } else {
+                state.mode = Mode.Attr;
+                raw = match[0];
+            }
             state.pos += match[0].length;
             var tag = { type: Mode.Tag, name: match[1] + match[2], raw: raw };
             if (state.mode === Mode.Attr) {
@@ -351,16 +349,24 @@
             }
             state.pos += value_data.match.length;
         } else {
-            Parser.re_parseAttr_splitValue.lastIndex = state.pos;
-            if (Parser.re_parseAttr_splitValue.exec(state.data)) {
-                state.needData = true;
-                state.pos -= name_data.match.length;
-                return;
+            if (state.data.indexOf(' ', state.pos - 1)) {
+                value_data = {
+                    match: ''
+                    , value: null
+                };
+
+            } else {
+                Parser.re_parseAttr_splitValue.lastIndex = state.pos;
+                if (Parser.re_parseAttr_splitValue.exec(state.data)) {
+                    state.needData = true;
+                    state.pos -= name_data.match.length;
+                    return;
+                }
+                value_data = {
+                    match: ''
+                    , value: null
+                };
             }
-            value_data = {
-                match: ''
-                , value: null
-            };
         }
         state.lastTag.raw += name_data.match + value_data.match;
 
