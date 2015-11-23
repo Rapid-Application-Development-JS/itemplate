@@ -50,4 +50,26 @@ describe("0.1: Parser checking", function () {
             });
     });
 
-});
+    it("0.1.5: markup inside tag attribute", function (done) {
+        utils.fileToJsonAssert(
+            './test/data/test4.html',
+            './test/data/test4.json',
+            function (parseData, jsonData) {
+                parseData.should.be.like(jsonData);
+                done();
+            });
+    });
+
+    //it("x.x.x: - ", function (done) {
+    //    var html = require('fs').readFileSync('./test/data/test4.html').toString();
+    //    builder.setCallback(function (data) {
+    //        require('jsonfile').writeFile('./test/data/test4.json', data, function (err) {
+    //            console.error(err)
+    //        });
+    //        done();
+    //    });
+    //
+    //    parser.parseComplete(html);
+    //});
+
+    });
