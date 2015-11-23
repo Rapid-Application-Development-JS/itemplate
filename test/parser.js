@@ -60,12 +60,23 @@ describe("0.1: Parser checking", function () {
             });
     });
 
+    it("0.1.6: 'script' tag", function (done) {
+        utils.fileToJsonAssert(
+            './test/data/test5.html',
+            './test/data/test5.json',
+            function (parseData, jsonData) {
+                parseData.should.be.like(jsonData);
+                done();
+            });
+    });
+
     //it("x.x.x: - ", function (done) {
-    //    var html = require('fs').readFileSync('./test/data/test4.html').toString();
+    //    var html = require('fs').readFileSync('./test/data/test5.html').toString();
     //    builder.setCallback(function (data) {
-    //        require('jsonfile').writeFile('./test/data/test4.json', data, function (err) {
+    //        require('jsonfile').writeFile('./test/data/test5.json', data, function (err) {
     //            console.error(err)
     //        });
+    //        //console.log(data);
     //        done();
     //    });
     //

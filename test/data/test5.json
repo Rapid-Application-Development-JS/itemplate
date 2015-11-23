@@ -1,0 +1,44 @@
+[
+  {
+    "type": "tag",
+    "name": "script",
+    "raw": "script type=\"text/template\""
+  },
+  {
+    "type": "attr",
+    "name": "type",
+    "data": "text/template"
+  },
+  {
+    "type": "text",
+    "data": "<h1>Heading1</h1>"
+  },
+  {
+    "type": "tag",
+    "name": "/script",
+    "raw": "/script"
+  },
+  {
+    "type": "text",
+    "data": "\n\n"
+  },
+  {
+    "type": "tag",
+    "name": "SCRIPT",
+    "raw": "SCRIPT TYPE=\"text/javascript\""
+  },
+  {
+    "type": "attr",
+    "name": "TYPE",
+    "data": "text/javascript"
+  },
+  {
+    "type": "text",
+    "data": "\n    var gDomain=\"sdc.bmi.com\";\n    var gDcsId=\"dcsnnb9tr9wm1ic8m9wiosd8c_5q1q\";\n    var gFpc=\"WT_FPC\";\n    var gConvert=true;\n\n    if ((typeof(gConvert)!=\"undefined\")&&gConvert&&(document.cookie.indexOf(gFpc+\"=\")==-1)&&(document.cookie.indexOf(\"WTLOPTOUT=\")==-1)){\n        document.write(\"<SCRIPT> TYPE='text/javascript' SRC='\"\n                +\"http\"+(window.location.protocol.indexOf('https:')==0?'s':'')\n                +\"://\"+gDomain+\"/\"+gDcsId+\"/wtid.js\"+\"'><\\/SCRIPT>\");\n    }\n"
+  },
+  {
+    "type": "tag",
+    "name": "/SCRIPT",
+    "raw": "/SCRIPT"
+  }
+]
