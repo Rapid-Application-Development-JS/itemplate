@@ -1,0 +1,120 @@
+[
+  {
+    "type": "tag",
+    "name": "div",
+    "raw": "div"
+  },
+  {
+    "type": "text",
+    "data": " {{- data.listTitle }}"
+  },
+  {
+    "type": "tag",
+    "name": "/div",
+    "raw": "/div"
+  },
+  {
+    "type": "text",
+    "data": "\n"
+  },
+  {
+    "type": "tag",
+    "name": "ul",
+    "raw": "ul"
+  },
+  {
+    "type": "text",
+    "data": "\n    {{  var showFootnote = false;\n    data.listItems.forEach(function(listItem, i) {\n    }}\n    "
+  },
+  {
+    "type": "tag",
+    "name": "li",
+    "raw": "li class=\"row {{=(i % 2 == 1 ? ' even' : '')}}\""
+  },
+  {
+    "type": "attr",
+    "name": "class",
+    "data": "row {{=(i % 2 == 1 ? ' even' : '')}}"
+  },
+  {
+    "type": "text",
+    "data": "\n        {{- listItem.name }}\n        {{ if (listItem.hasOlympicGold){\n        showFootnote = true; }}\n        "
+  },
+  {
+    "type": "tag",
+    "name": "em",
+    "raw": "em"
+  },
+  {
+    "type": "text",
+    "data": "*"
+  },
+  {
+    "type": "tag",
+    "name": "/em",
+    "raw": "/em"
+  },
+  {
+    "type": "text",
+    "data": "\n        {{ } }}\n    "
+  },
+  {
+    "type": "tag",
+    "name": "/li",
+    "raw": "/li"
+  },
+  {
+    "type": "text",
+    "data": "\n    {{  }); }}\n"
+  },
+  {
+    "type": "tag",
+    "name": "/ul",
+    "raw": "/ul"
+  },
+  {
+    "type": "text",
+    "data": "\n\n{{ if (showFootnote){ }}\n"
+  },
+  {
+    "type": "tag",
+    "name": "p",
+    "raw": "p style=\"font-size: 12px ;\""
+  },
+  {
+    "type": "attr",
+    "name": "style",
+    "data": "font-size: 12px ;"
+  },
+  {
+    "type": "text",
+    "data": "\n    "
+  },
+  {
+    "type": "tag",
+    "name": "em",
+    "raw": "em"
+  },
+  {
+    "type": "text",
+    "data": "* Olympic gold medalist"
+  },
+  {
+    "type": "tag",
+    "name": "/em",
+    "raw": "/em"
+  },
+  {
+    "type": "text",
+    "data": "\n"
+  },
+  {
+    "type": "tag",
+    "name": "/p",
+    "raw": "/p"
+  },
+  {
+    "type": "text",
+    "data": "\n{{ } }}"
+  }
+]
