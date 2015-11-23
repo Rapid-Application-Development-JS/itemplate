@@ -277,6 +277,7 @@
     Parser.re_parseAttr_findValue = /\s*=\s*(?:'([^']*)'|"([^"]*)"|([^'"\s\/>]+))\s*/g;
     Parser.re_parseAttr_findValue_last = /\s*=\s*['"]?(.*)$/g;
     Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue () {
+        // todo: parse {{ checked ? 'checked' : '' }} in input
         var state = this._state;
         Parser.re_parseAttr_findValue.lastIndex = state.pos;
         var match = Parser.re_parseAttr_findValue.exec(state.data);

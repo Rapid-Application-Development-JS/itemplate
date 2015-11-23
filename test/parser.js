@@ -70,17 +70,17 @@ describe("0.1: Parser checking", function () {
             });
     });
 
-    //it("x.x.x: - ", function (done) {
-    //    var html = require('fs').readFileSync('./test/data/test5.html').toString();
-    //    builder.setCallback(function (data) {
-    //        require('jsonfile').writeFile('./test/data/test5.json', data, function (err) {
-    //            console.error(err)
-    //        });
-    //        //console.log(data);
-    //        done();
-    //    });
-    //
-    //    parser.parseComplete(html);
-    //});
+    it("x.x.x: - ", function (done) {
+        var html = require('fs').readFileSync('./test/data/test6.html').toString();
+        builder.setCallback(function (data) {
+            //require('jsonfile').writeFile('./test/data/test5.json', data, function (err) {
+            //    console.error(err)
+            //});
+            console.log(data);
+            done();
+        });
+
+        parser.parseComplete(html);
+    });
 
     });
