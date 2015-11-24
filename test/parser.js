@@ -16,7 +16,7 @@ describe("0.1: Parser checking", function () {
         builder.reset();
     });
 
-    it("0.1.1: Parser' exist", function () {
+    it("0.1.1: Parser exist", function () {
         Parser.should.be.a('function');
     });
 
@@ -83,4 +83,4 @@ describe("0.1: Parser checking", function () {
         parser.parseComplete(html);
     });
 
-    });
+});

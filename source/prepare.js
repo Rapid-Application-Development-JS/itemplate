@@ -9,6 +9,10 @@ var _options = {
         open: "{%",
         close: "%}"
     },
+    evaluate: {
+        open: "<evaluate>",
+        close: "</evaluate>"
+    },
     MAP: {
         '&': '&amp;',
         '<': '&lt;',
@@ -27,7 +31,7 @@ function escapeHTML(s) {
 
 function evaluate(string) {
     return string.replace(_options.template.evaluate, function (match, p1) {
-        return "<evaluate>" + p1.replace(_options.BREAK_LINE, " ").trim() + "</evaluate>";
+        return _options.evaluate.open + p1.replace(_options.BREAK_LINE, " ").trim() + _options.evaluate.close;
     });
 
 }
