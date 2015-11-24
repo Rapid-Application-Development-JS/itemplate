@@ -24,7 +24,7 @@ var _options = {
 };
 
 function escapeHTML(s) {
-    return s.replace(__options.escape, function (c) {
+    return s.replace(_options.escape, function (c) {
         return _options.MAP[c];
     });
 }
@@ -56,7 +56,7 @@ var methods = {
 
 function prepare(string) {
     var result = string;
-    for (var i = 0; i < _options.order; i++) {
+    for (var i = 0; i < _options.order.length; i++) {
         result = methods[_options.order[i]](result);
     }
     return result;

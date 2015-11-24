@@ -4,6 +4,7 @@ var should = chai.should();
 
 var Parser = require("../source/parser");
 var Builder = require("../source/builder");
+var prepare = require("../source/prepare").prepare;
 
 var builder = new Builder();
 var parser = new Parser(builder);
@@ -20,7 +21,7 @@ describe("0.1: Parser checking", function () {
 
     it("0.1.2: plain html", function () {
         var html = require('fs').readFileSync('./test/data/test6.html').toString();
-        parser.parseComplete(html);
+        parser.parseComplete(prepare(html));
     });
 
 });

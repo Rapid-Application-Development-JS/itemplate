@@ -25,3 +25,4 @@ elementVoid("input", null, null, "type", "text", "name", "text-2", "placeholder"
 elementVoid("input", null, null, "type", "text", "name", "text-3", "placeholder", "some name");
 elementVoid("input", null, null, "type", "email");
 elementClose("div");
+
