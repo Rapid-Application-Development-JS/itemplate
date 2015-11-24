@@ -70,3 +70,19 @@ if (showFootnote) {
     elementClose('em');
     elementClose('p');
 }
+
+//  issue
+elementOpen('ul', null, null);
+data.listItems.forEach(function (listItem, i) {
+    if (listItem.hasOlympicGold) {
+        elementOpen('li', null, null, 'class', 'row');
+    } else {
+        elementOpen('li', null, null, 'class', 'row even');
+    }
+    text(listItem.name);
+    elementOpen('em', null, null);
+    text('*');
+    elementClose('em');
+    elementClose('li');
+});
+elementClose('ul');
