@@ -6,6 +6,7 @@ var _options = {
         close: "%}"
     },
     evaluate: { // todo
+        name: 'evaluate',
         open: "<evaluate>",
         close: "</evaluate>"
     },
@@ -89,7 +90,11 @@ function writeText(text) {
         stack.push(Command.text + text + '"' + Command.close);
 }
 
-function writeState(isClosed) {
+function writeCode(text) {
+        stack.push(prepareText(state.tag, text));
+}
+
+function writeAndCloseOpenState(isClosed) {
     var isShouldClose = true;
     if (state.tag) {
         if (isClosed || voidRequireTags.indexOf(state.tag) !== -1) { // void mode
@@ -99,9 +104,9 @@ function writeState(isClosed) {
             writeCommand(Command.elementOpenStart, state.tag);
             writeAttributes(state.attributes);
             writeCommand(Command.elementOpenEnd, state.tag);
-        } else { // standard mode
+        } else if (state.tag !== _options.evaluate.name) { // standard mode
             writeCommand(Command.elementOpen, state.tag, state.attributes);
-        }
+        } // if we write code, do nothing
     }
 
     // clear builder state for next tag
@@ -127,14 +132,16 @@ Builder.prototype.reset = function () {
 };
 
 Builder.prototype.write = function (command) {
+    var tag;
     switch (command.type) {
         case ParserMode.Tag:
+            tag = command.name.replace('/', '');
             if (command.name.indexOf('/') === 0) { // close tag case
-                if (writeState(true))
-                    writeCommand(Command.elementClose, command.name.replace('/', ''));
+                if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name)
+                    writeCommand(Command.elementClose, tag);
             } else { // open tag case
-                writeState();
-                state.tag = command.name;
+                writeAndCloseOpenState();
+                state.tag = tag;
                 state.attributes = {};
             }
             break;
@@ -147,8 +154,13 @@ Builder.prototype.write = function (command) {
             }
             break;
         case ParserMode.Text: // write text
-            writeState();
-            writeText(command.data);
+            tag = state.tag;
+            writeAndCloseOpenState();
+            if (tag === _options.evaluate.name) {
+                writeCode(command.data);
+            } else {
+                writeText(command.data);
+            }
             break;
     }
 };

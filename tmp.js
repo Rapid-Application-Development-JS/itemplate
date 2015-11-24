@@ -1,28 +1,22 @@
-elementVoid("span", null, null, "class", "{{ true ? 'first' : 'second' }}", "title", "first line<br>second line");
-elementOpen("div", null, null, "class", "title");
-text("Title");
+elementOpen("div", null, null);
+text("{% data.listTitle %}");
 elementClose("div");
 elementOpen("ul", null, null);
-elementOpen("li", null, null, "class", "row even");
-text("John Smith");
-elementOpen("em", null, null);
-text("*");
-elementClose("em");
-elementClose("li");
-elementOpen("li", null, null, "class", "row");
-text("Mark Smith");
-elementClose("li");
+var showFootnote = false;     data.listItems.forEach(function(listItem, i) {
+    elementOpen("li", null, null, "class", "row {%(i % 2 == 1 ? ' even' : '')%}");
+    text("{% listItem.name %}");
+    if (listItem.hasOlympicGold){         showFootnote = true;
+        elementOpen("em", null, null);
+        text("*");
+        elementClose("em");
+    }
+    elementClose("li");
+});
 elementClose("ul");
-elementOpen("p", null, null, "style", "font-size: 12px ;");
-elementOpen("em", null, null);
-text("* Olympic gold medalist");
-elementClose("em");
-elementClose("p");
-elementOpen("div", null, null);
-elementVoid("input", null, null, "type", "password", "name", "pass");
-elementVoid("input", null, null, "type", "text", "name", "text-1", "placeholder", "some name");
-elementVoid("input", null, null, "type", "text", "name", "text-2", "placeholder", "some name", "readonly", "readonly");
-elementVoid("input", null, null, "type", "text", "name", "text-3", "placeholder", "some name");
-elementVoid("input", null, null, "type", "email");
-elementClose("div");
-
+if (showFootnote){
+    elementOpen("p", null, null, "style", "font-size: 12px ;");
+    elementOpen("em", null, null);
+    text("* Olympic gold medalist");
+    elementClose("em");
+    elementClose("p");
+}
