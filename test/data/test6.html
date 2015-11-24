@@ -1,32 +1,40 @@
-<!--<span class="{{ true ? 'first' : 'second' }}" title="first line<br>second line"></span>-->
+<!--it should be different input examples-->
+<div>
+    <input type="password" name="pass" />
+    <input type="text" name="text-1" placeholder="some name">
+    <input type="text" name="text-2" placeholder="some name" readonly>
+    <input type="text" name="text-3" placeholder="some name" />
+    <input type="email">
+</div>
 
-<!--&lt;!&ndash;it should be different input examples&ndash;&gt;-->
+<!--plain html-->
+<div class="title">Title</div>
+<ul>
+    <li class="row even">
+        John Smith
+        <em>*</em>
+    </li>
+    <li class="row">
+        Mark Smith
+    </li>
+</ul>
 
-<!--<div class="title">Title</div>-->
-<!--<ul>-->
-    <!--<li class="row even">-->
-        <!--John Smith-->
-        <!--<em>*</em>-->
-    <!--</li>-->
-    <!--<li class="row">-->
-        <!--Mark Smith-->
-    <!--</li>-->
-<!--</ul>-->
+<p style="font-size: 12px ;">
+    <em>* Olympic gold medalist</em>
+</p>
 
-<!--<p style="font-size: 12px ;">-->
-    <!--<em>* Olympic gold medalist</em>-->
-<!--</p>-->
+<!-- templates
+    as attribute value -->
+<span class="<%= isTrue ? 'first' : 'second' %>" title="<%=name%><br><%=lastName%>"></span>
 
-<!--<div>-->
-    <!--<input type="password" name="pass" />-->
-    <!--<input type="text" name="text-1" placeholder="some name">-->
-    <!--<input type="text" name="text-2" placeholder="some name" readonly>-->
-    <!--<input type="text" name="text-3" placeholder="some name" />-->
-    <!--<input type="email">-->
-<!--</div>-->
+<!-- templates as text -->
+<div><%- data.listTitle %></div>
+<div>test<%- data.listTitle %></div>
+<div><%- data.listTitle %>test</div>
+<div>test<%- data.listTitle %>test</div>
+<div>test<%- data.listTitle %>test<%- data.listTitle %></div>
 
-<!--start-->
-<div> <%- data.listTitle %></div>
+<!--start embedded js -->
 <ul>
     <%  var showFootnote = false;
     data.listItems.forEach(function(listItem, i) {
@@ -42,7 +50,21 @@
 </ul>
 
 <% if (showFootnote){ %>
-<p style="font-size: 12px ;">
+<p style="font-size: 12px;">
     <em>* Olympic gold medalist</em>
 </p>
 <% } %>
+
+<!-- issue -->
+<ul>
+    <% data.listItems.forEach(function(listItem, i) {
+        if (listItem.hasOlympicGold){ %>
+        <li class="row">
+            <% } else { %>
+        <li class="row even">
+        <% } %>
+        <%- listItem.name %>
+        <em>*</em>
+    </li>
+    <%  }); %>
+</ul>

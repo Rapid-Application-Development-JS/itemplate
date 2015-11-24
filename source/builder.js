@@ -1,37 +1,34 @@
 /* private */
 var _options = {
     BREAK_LINE: /(\r\n|\n|\r)/gm,
-    accessory: { // todo
-        open: "{%",
-        close: "%}"
+    accessory: {
+        open: '{%',
+        close: '%}'
     },
-    evaluate: { // todo
+    evaluate: {
         name: 'evaluate',
-        open: "<evaluate>",
-        close: "</evaluate>"
+        open: '<evaluate>',
+        close: '</evaluate>'
     },
-    staticKey: "static-key", // todo
-    staticArray: "static-array" // todo
+    staticKey: 'static-key', // todo
+    staticArray: 'static-array' // todo
 };
 
 var ParserMode = {
     Text: 'text',
     Tag: 'tag',
     Attr: 'attr',
-    CData: 'cdata', //todo, is it need?
-    Doctype: 'doctype', //todo, is it need?
-    Comment: 'comment', //todo, is it need?
-    Script: 'script' //todo, is it need?
+    Comment: 'comment'
 };
 
-var Command = {
-    elementOpen: 'elementOpen("',
-    elementVoid: 'elementVoid("',
-    elementOpenStart: 'elementOpenStart("',
-    elementOpenEnd: 'elementOpenEnd("',
-    elementClose: 'elementClose("',
-    text: 'text("',
-    attr: 'attr("',
+var Command = { // incremental DOM commands
+    elementOpen: 'elementOpen(\'',
+    elementVoid: 'elementVoid(\'',
+    elementOpenStart: 'elementOpenStart(\'',
+    elementOpenEnd: 'elementOpenEnd(\'',
+    elementClose: 'elementClose(\'',
+    text: 'text(',
+    attr: 'attr(\'',
     close: ');'
 };
 
@@ -40,12 +37,38 @@ var textSaveTags = ['pre', 'code'];
 var voidRequireTags = ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
     'param', 'source', 'track', 'wbr'];
 
-// current builder state
-var state;
-// result builder
-var stack;
+var state; // current builder state
+var stack; // result builder
 
-function prepareText(tag, text) {
+function decodeAccessory(string) {
+    var regex = new RegExp(_options.accessory.open + '(.*?)' + _options.accessory.close, 'g');
+    var prefix = true;
+    var suffix = true;
+    var isStatic = true;
+
+    var result = string.replace(regex, function (match, p1, index, string) {
+        isStatic = false;
+
+        if (index !== 0)
+            p1 = '\'+' + p1;
+        else
+            prefix = false;
+
+        if ((string.length - (index + match.length)) > 0)
+            p1 += '+\'';
+        else
+            suffix = false;
+
+        return p1;
+    });
+
+    return {
+        isStatic: isStatic,
+        value: (prefix ? '\'' : '') + result + (suffix ? '\'' : '')
+    };
+}
+
+function formatText(tag, text) {
     var stub = ' ';
     if (textSaveTags.indexOf(tag) !== -1)
         stub = '\n';
@@ -62,19 +85,27 @@ function prepareKey(command) {
 }
 
 function prepareAttr(command, attributes) {
-    var result = '';
+    var result = '', attr, decode;
     if (command === Command.elementOpen || command === Command.elemenOpenStart || command === Command.elementVoid) {
         result = 'null';
         for (var key in attributes) {
-            if (attributes.hasOwnProperty(key))
-                result += ', "' + key + '", "' + ((attributes[key] === null) ? key : attributes[key]) + '"';
+            if (attributes.hasOwnProperty(key)) {
+                attr = attributes[key];
+                attr = (attr === null) ? key : attr;
+                decode = decodeAccessory(attr);
+                if (decode.isStatic) {
+                    result += ', \'' + key + '\', \'' + attr + '\'';
+                } else {
+                    result += ', \'' + key + '\', ' + decode.value;
+                }
+            }
         }
     }
     return result;
 }
 
 function writeCommand(command, tag, attributes) {
-    stack.push(command + tag + '"' + prepareKey(command) + prepareAttr(command, attributes) + Command.close);
+    stack.push(command + tag + '\'' + prepareKey(command) + prepareAttr(command, attributes) + Command.close);
 }
 
 function writeAttributes(attrs) {
@@ -85,13 +116,20 @@ function writeAttributes(attrs) {
 }
 
 function writeText(text) {
-    text = prepareText(state.tag, text);
-    if (text.length > 0)
-        stack.push(Command.text + text + '"' + Command.close);
+    text = formatText(state.tag, text);
+    if (text.length > 0) {
+        var decode = decodeAccessory(text);
+        text = decode.isStatic ? ('\'' + text + '\'') : decode.value;
+        stack.push(Command.text + text + Command.close);
+    }
 }
 
 function writeCode(text) {
-        stack.push(prepareText(state.tag, text));
+    stack.push(formatText(state.tag, text));
+}
+
+function writeComment(text) {
+    stack.push('\n// ' + text.replace(_options.BREAK_LINE, ' '));
 }
 
 function writeAndCloseOpenState(isClosed) {
@@ -114,7 +152,7 @@ function writeAndCloseOpenState(isClosed) {
     state.attributes = {};
     state.extendMode = false;
 
-    return isShouldClose;
+    return isShouldClose; // should we close this tag: no if we have void element
 }
 
 /* public */
@@ -148,7 +186,7 @@ Builder.prototype.write = function (command) {
         case ParserMode.Attr: // push attribute in state
             state.attributes[command.name] = command.data;
 
-            // switch to elementOpen extend mode
+            // todo switch to elementOpen extend mode only with dynamic attributes
             if (command.data === null) {
                 state.extendMode = true;
             }
@@ -161,6 +199,9 @@ Builder.prototype.write = function (command) {
             } else {
                 writeText(command.data);
             }
+            break;
+        case ParserMode.Comment: // write comments immediately
+            writeComment(command.data);
             break;
     }
 };
