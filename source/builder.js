@@ -40,6 +40,14 @@ var voidRequireTags = ['input', 'area', 'base', 'br', 'col', 'command', 'embed',
 var state; // current builder state
 var stack; // result builder
 
+function makeKey() {
+    var text = new Array(12), possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    for (var i = 0; i < 12; i++)
+        text.push(possible.charAt(Math.floor(Math.random() * possible.length)));
+
+    return text.join('');
+}
+
 function decodeAccessory(string) {
     var regex = new RegExp(_options.accessory.open + '(.*?)' + _options.accessory.close, 'g');
     var prefix = true;
@@ -76,10 +84,16 @@ function formatText(tag, text) {
     return text.replace(_options.BREAK_LINE, stub).trim();
 }
 
-function prepareKey(command) {
+function prepareKey(command, attributes) {
     var result = '';
     if (command === Command.elementOpen || command === Command.elementOpenStart || command === Command.elementVoid) {
-        result = ', null, ';
+        if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
+        console.log('!!!!!!!!!!!!');
+            result = ', ' + (attributes[_options.staticKey] || makeKey()) + ', ';
+            delete attributes[_options.staticKey];
+        } else {
+            result = ', null, ';
+        }
     }
     return result;
 }
@@ -105,7 +119,7 @@ function prepareAttr(command, attributes) {
 }
 
 function writeCommand(command, tag, attributes) {
-    stack.push(command + tag + '\'' + prepareKey(command) + prepareAttr(command, attributes) + Command.close);
+    stack.push(command + tag + '\'' + prepareKey(command, attributes) + prepareAttr(command, attributes) + Command.close);
 }
 
 function writeAttributes(attrs) {
