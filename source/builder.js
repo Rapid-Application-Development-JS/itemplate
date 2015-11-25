@@ -39,6 +39,7 @@ var voidRequireTags = ['input', 'area', 'base', 'br', 'col', 'command', 'embed',
 
 var state; // current builder state
 var stack; // result builder
+var staticArraysHolder = {}; // holder for static arrays
 
 function decodeAccessory(string) {
     var regex = new RegExp(_options.accessory.open + '(.*?)' + _options.accessory.close, 'g');
@@ -85,9 +86,12 @@ function prepareKey(command) {
 }
 
 function prepareAttr(command, attributes) {
-    var result = '', attr, decode;
+    var result = '', attr, decode, isStaticNeed = false;
     if (command === Command.elementOpen || command === Command.elemenOpenStart || command === Command.elementVoid) {
         result = 'null';
+        if (attributes && attributes.hasOwnProperty(_options.staticArray))
+            isStaticNeed =  attributes[_options.staticArray] || makeKey();
+
         for (var key in attributes) {
             if (attributes.hasOwnProperty(key)) {
                 attr = attributes[key];
@@ -167,6 +171,7 @@ Builder.prototype.reset = function () {
         attributes: {},
         extendMode: false
     };
+    staticArraysHolder = {};
 };
 
 Builder.prototype.write = function (command) {
@@ -187,6 +192,7 @@ Builder.prototype.write = function (command) {
             state.attributes[command.name] = command.data;
 
             // todo switch to elementOpen extend mode only with dynamic attributes
+            // todo are we need it(EXTEND MODE)?
             if (command.data === null) {
                 state.extendMode = true;
             }
