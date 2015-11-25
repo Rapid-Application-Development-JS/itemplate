@@ -89,8 +89,7 @@ function prepareKey(command, attributes) {
     var result = '';
     if (command === Command.elementOpen || command === Command.elementOpenStart || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
-        console.log('!!!!!!!!!!!!');
-            result = ', ' + (attributes[_options.staticKey] || makeKey()) + ', ';
+            result = ', \'' + (attributes[_options.staticKey] || makeKey()) + '\', ';
             delete attributes[_options.staticKey];
         } else {
             result = ', null, ';
@@ -100,11 +99,14 @@ function prepareKey(command, attributes) {
 }
 
 function prepareAttr(command, attributes) {
-    var result = '', attr, decode, isStaticNeed = false;
+    var result = '', attr, decode, arrayStaticKey = false;
     if (command === Command.elementOpen || command === Command.elemenOpenStart || command === Command.elementVoid) {
-        result = 'null';
-        if (attributes && attributes.hasOwnProperty(_options.staticArray))
-            isStaticNeed =  attributes[_options.staticArray] || makeKey();
+        if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
+            arrayStaticKey =  attributes[_options.staticArray] || makeKey();
+            staticArraysHolder[arrayStaticKey] = [];
+            delete attributes[_options.staticArray];
+        }
+        result = arrayStaticKey || null; // todo '\'' in js const
 
         for (var key in attributes) {
             if (attributes.hasOwnProperty(key)) {
@@ -112,7 +114,10 @@ function prepareAttr(command, attributes) {
                 attr = (attr === null) ? key : attr;
                 decode = decodeAccessory(attr);
                 if (decode.isStatic) {
-                    result += ', \'' + key + '\', \'' + attr + '\'';
+                    if (arrayStaticKey)
+                        staticArraysHolder[arrayStaticKey].push(key, attr);
+                    else
+                        result += ', \'' + key + '\', \'' + attr + '\'';
                 } else {
                     result += ', \'' + key + '\', ' + decode.value;
                 }
@@ -229,6 +234,8 @@ Builder.prototype.write = function (command) {
 Builder.prototype.done = function () {
     // todo
     console.log(stack.join('\n'));
+    console.log();
+    console.log(staticArraysHolder);
 };
 
 Builder.prototype.error = function (error) {
