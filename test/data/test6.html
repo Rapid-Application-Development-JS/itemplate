@@ -76,3 +76,7 @@
 <!--arrays cases-->
 <div static-array class="box" style="align-content: center;"></div>
 <div static-array="myCustomArray"  class="shadow" style="border: dashed;"></div>
+
+<!--keys & arrays-->
+<div static-array static-key style="align-content: center;" class="row <%=(i % 2 == 1 ? ' even' : '')%>">Content</div>
+<div static-array="myCustomArray"  class="shadow" style="border: dashed;" static-key="my-second-custom-key"></div>

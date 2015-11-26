@@ -10,8 +10,8 @@ var _options = {
         open: '<evaluate>',
         close: '</evaluate>'
     },
-    staticKey: 'static-key', // todo
-    staticArray: 'static-array' // todo
+    staticKey: 'static-key',
+    staticArray: 'static-array'
 };
 
 var ParserMode = {
@@ -24,11 +24,8 @@ var ParserMode = {
 var Command = { // incremental DOM commands
     elementOpen: 'elementOpen(\'',
     elementVoid: 'elementVoid(\'',
-    elementOpenStart: 'elementOpenStart(\'',
-    elementOpenEnd: 'elementOpenEnd(\'',
     elementClose: 'elementClose(\'',
     text: 'text(',
-    attr: 'attr(\'',
     close: ');'
 };
 
@@ -40,9 +37,10 @@ var voidRequireTags = ['input', 'area', 'base', 'br', 'col', 'command', 'embed',
 var state; // current builder state
 var stack; // result builder
 var staticArraysHolder = {}; // holder for static arrays
+var wrapper; // external wrapper functionality
 
 function makeKey() {
-    var text = new Array(12), possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    var text = new Array(12), possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz";
     for (var i = 0; i < 12; i++)
         text.push(possible.charAt(Math.floor(Math.random() * possible.length)));
 
@@ -87,7 +85,7 @@ function formatText(tag, text) {
 
 function prepareKey(command, attributes) {
     var result = '';
-    if (command === Command.elementOpen || command === Command.elementOpenStart || command === Command.elementVoid) {
+    if (command === Command.elementOpen || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
             result = ', \'' + (attributes[_options.staticKey] || makeKey()) + '\', ';
             delete attributes[_options.staticKey];
@@ -100,13 +98,13 @@ function prepareKey(command, attributes) {
 
 function prepareAttr(command, attributes) {
     var result = '', attr, decode, arrayStaticKey = false;
-    if (command === Command.elementOpen || command === Command.elemenOpenStart || command === Command.elementVoid) {
+    if (command === Command.elementOpen || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
             arrayStaticKey =  attributes[_options.staticArray] || makeKey();
             staticArraysHolder[arrayStaticKey] = [];
             delete attributes[_options.staticArray];
         }
-        result = arrayStaticKey || null; // todo '\'' in js const
+        result = arrayStaticKey || null;
 
         for (var key in attributes) {
             if (attributes.hasOwnProperty(key)) {
@@ -129,13 +127,6 @@ function prepareAttr(command, attributes) {
 
 function writeCommand(command, tag, attributes) {
     stack.push(command + tag + '\'' + prepareKey(command, attributes) + prepareAttr(command, attributes) + Command.close);
-}
-
-function writeAttributes(attrs) {
-    for (var attrName in attrs) {
-        if (attrs.hasOwnProperty(attrName))
-            stack.push(Command.attr + attrName + ', ' + attrs[attrName] + Command.close);
-    }
 }
 
 function writeText(text) {
@@ -161,10 +152,6 @@ function writeAndCloseOpenState(isClosed) {
         if (isClosed || voidRequireTags.indexOf(state.tag) !== -1) { // void mode
             writeCommand(Command.elementVoid, state.tag, state.attributes);
             isShouldClose = false;
-        } else if (state.extendMode) { // extend mode
-            writeCommand(Command.elementOpenStart, state.tag);
-            writeAttributes(state.attributes);
-            writeCommand(Command.elementOpenEnd, state.tag);
         } else if (state.tag !== _options.evaluate.name) { // standard mode
             writeCommand(Command.elementOpen, state.tag, state.attributes);
         } // if we write code, do nothing
@@ -173,13 +160,13 @@ function writeAndCloseOpenState(isClosed) {
     // clear builder state for next tag
     state.tag = null;
     state.attributes = {};
-    state.extendMode = false;
 
     return isShouldClose; // should we close this tag: no if we have void element
 }
 
 /* public */
-function Builder() {
+function Builder(functionWrapper) {
+    wrapper = functionWrapper;
     this.reset();
 }
 
@@ -187,8 +174,7 @@ Builder.prototype.reset = function () {
     stack = [];
     state = {
         tag: null,
-        attributes: {},
-        extendMode: false
+        attributes: {}
     };
     staticArraysHolder = {};
 };
@@ -209,12 +195,6 @@ Builder.prototype.write = function (command) {
             break;
         case ParserMode.Attr: // push attribute in state
             state.attributes[command.name] = command.data;
-
-            // todo switch to elementOpen extend mode only with dynamic attributes
-            // todo are we need it(EXTEND MODE)?
-            if (command.data === null) {
-                state.extendMode = true;
-            }
             break;
         case ParserMode.Text: // write text
             tag = state.tag;
@@ -232,10 +212,7 @@ Builder.prototype.write = function (command) {
 };
 
 Builder.prototype.done = function () {
-    // todo
-    console.log(stack.join('\n'));
-    console.log();
-    console.log(staticArraysHolder);
+    wrapper(stack, staticArraysHolder);
 };
 
 Builder.prototype.error = function (error) {

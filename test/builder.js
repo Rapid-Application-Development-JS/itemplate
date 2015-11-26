@@ -6,7 +6,11 @@ var Parser = require("../source/parser");
 var Builder = require("../source/builder");
 var prepare = require("../source/prepare").prepare;
 
-var builder = new Builder();
+var builder = new Builder(function(stack, arrays) {
+    console.log(stack.join('\n'));
+    console.log();
+    console.log(arrays);
+});
 var parser = new Parser(builder);
 
 describe("0.1: Parser checking", function () {
@@ -23,5 +27,4 @@ describe("0.1: Parser checking", function () {
         var html = require('fs').readFileSync('./test/data/test6.html').toString();
         parser.parseComplete(prepare(html));
     });
-
 });
