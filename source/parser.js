@@ -1,8 +1,3 @@
-/**
- * Based on https://github.com/tautologistics/node-htmlparser
- * and https://github.com/deanmao/node-htmlparser/commit/fdcdd0a3f421e7ca28aa10816b79e5d78b1cfba8
- */
-
 var Mode = require('./mode');
 
 function Parser(builder) {
@@ -29,11 +24,7 @@ Parser.prototype.reset = function Parser$reset() {
 
 Parser.prototype.parseChunk = function Parser$parseChunk(chunk) {
     this._state.needData = false;
-    this._state.data = (this._state.data !== null) ?
-    this._state.data.substr(this.pos) + chunk
-        :
-        chunk
-    ;
+    this._state.data = (this._state.data !== null) ? this._state.data.substr(this.pos) + chunk : chunk;
     while (this._state.pos < this._state.data.length && !this._state.needData) {
         this._parse(this._state);
     }
@@ -99,11 +90,7 @@ Parser.prototype._parseText = function Parser$_parseText() {
     if (state.isScript) {
         Parser._re_parseText_scriptClose.lastIndex = state.pos;
         foundPos = Parser._re_parseText_scriptClose.exec(state.data);
-        foundPos = (foundPos) ?
-            foundPos.index
-            :
-            -1
-        ;
+        foundPos = (foundPos) ? foundPos.index : -1;
     } else {
         foundPos = state.data.indexOf('<', state.pos);
     }
@@ -203,8 +190,8 @@ Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
         return null;
     }
     return {
-        match: match[0]
-        , name: match[1]
+        match: match[0],
+        name: match[1]
     };
 };
 Parser.re_parseAttr_findValue = /\s*=\s*(?:'([^']*)'|"([^"]*)"|([^'"\s\/>]+))\s*/g;
@@ -224,16 +211,16 @@ Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue() {
             return null;
         }
         return {
-            match: match[0]
-            , value: (match[1] !== '') ? match[1] : null
+            match: match[0],
+            value: (match[1] !== '') ? match[1] : null
         };
     }
     if (state.pos + match[0].length !== Parser.re_parseAttr_findValue.lastIndex) {
         return null;
     }
     return {
-        match: match[0]
-        , value: match[1] || match[2] || match[3]
+        match: match[0],
+        value: match[1] || match[2] || match[3]
     };
 };
 Parser.re_parseAttr_splitValue = /\s*=\s*['"]?/g;
@@ -284,8 +271,8 @@ Parser.prototype._parseAttr = function Parser$_parseAttr() {
     } else {
         if (state.data.indexOf(' ', state.pos - 1)) {
             value_data = {
-                match: ''
-                , value: null
+                match: '',
+                value: null
             };
 
         } else {
@@ -296,8 +283,8 @@ Parser.prototype._parseAttr = function Parser$_parseAttr() {
                 return;
             }
             value_data = {
-                match: ''
-                , value: null
+                match: '',
+                value: null
             };
         }
     }
