@@ -1,38 +1,7 @@
 /* private */
-var _options = {
-    BREAK_LINE: /(\r\n|\n|\r)/gm,
-    accessory: {
-        open: '{%',
-        close: '%}'
-    },
-    evaluate: {
-        name: 'evaluate',
-        open: '<evaluate>',
-        close: '</evaluate>'
-    },
-    staticKey: 'static-key',
-    staticArray: 'static-array'
-};
-
-var ParserMode = {
-    Text: 'text',
-    Tag: 'tag',
-    Attr: 'attr',
-    Comment: 'comment'
-};
-
-var Command = { // incremental DOM commands
-    elementOpen: 'elementOpen(\'',
-    elementVoid: 'elementVoid(\'',
-    elementClose: 'elementClose(\'',
-    text: 'text(',
-    close: ');'
-};
-
-// parse rules
-var textSaveTags = ['pre', 'code'];
-var voidRequireTags = ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
-    'param', 'source', 'track', 'wbr'];
+var _options = require('./options');
+var Mode = require('./mode');
+var Command = require('./wrapper').Command;
 
 var state; // current builder state
 var stack; // result builder
@@ -40,7 +9,7 @@ var staticArraysHolder = {}; // holder for static arrays
 var wrapper; // external wrapper functionality
 
 function makeKey() {
-    var text = new Array(12), possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz";
+    var text = new Array(12), possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz';
     for (var i = 0; i < 12; i++)
         text.push(possible.charAt(Math.floor(Math.random() * possible.length)));
 
@@ -77,7 +46,7 @@ function decodeAccessory(string) {
 
 function formatText(tag, text) {
     var stub = ' ';
-    if (textSaveTags.indexOf(tag) !== -1)
+    if (_options.textSaveTags.indexOf(tag) !== -1)
         stub = '\n';
 
     return text.replace(_options.BREAK_LINE, stub).trim();
@@ -100,7 +69,7 @@ function prepareAttr(command, attributes) {
     var result = '', attr, decode, arrayStaticKey = false;
     if (command === Command.elementOpen || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
-            arrayStaticKey =  attributes[_options.staticArray] || makeKey();
+            arrayStaticKey = attributes[_options.staticArray] || makeKey();
             staticArraysHolder[arrayStaticKey] = [];
             delete attributes[_options.staticArray];
         }
@@ -143,13 +112,13 @@ function writeCode(text) {
 }
 
 function writeComment(text) {
-    stack.push('\n// ' + text.replace(_options.BREAK_LINE, ' '));
+    stack.push('\n// ' + text.replace(_options.BREAK_LINE, ' ') + '\n');
 }
 
 function writeAndCloseOpenState(isClosed) {
     var isShouldClose = true;
     if (state.tag) {
-        if (isClosed || voidRequireTags.indexOf(state.tag) !== -1) { // void mode
+        if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
             writeCommand(Command.elementVoid, state.tag, state.attributes);
             isShouldClose = false;
         } else if (state.tag !== _options.evaluate.name) { // standard mode
@@ -182,7 +151,7 @@ Builder.prototype.reset = function () {
 Builder.prototype.write = function (command) {
     var tag;
     switch (command.type) {
-        case ParserMode.Tag:
+        case Mode.Tag:
             tag = command.name.replace('/', '');
             if (command.name.indexOf('/') === 0) { // close tag case
                 if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name)
@@ -193,10 +162,10 @@ Builder.prototype.write = function (command) {
                 state.attributes = {};
             }
             break;
-        case ParserMode.Attr: // push attribute in state
+        case Mode.Attr: // push attribute in state
             state.attributes[command.name] = command.data;
             break;
-        case ParserMode.Text: // write text
+        case Mode.Text: // write text
             tag = state.tag;
             writeAndCloseOpenState();
             if (tag === _options.evaluate.name) {
@@ -205,7 +174,7 @@ Builder.prototype.write = function (command) {
                 writeText(command.data);
             }
             break;
-        case ParserMode.Comment: // write comments immediately
+        case Mode.Comment: // write comments immediately
             writeComment(command.data);
             break;
     }
@@ -213,10 +182,6 @@ Builder.prototype.write = function (command) {
 
 Builder.prototype.done = function () {
     wrapper(stack, staticArraysHolder);
-};
-
-Builder.prototype.error = function (error) {
-    throw new Error(error);
 };
 
 module.exports = Builder;

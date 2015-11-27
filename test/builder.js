@@ -4,7 +4,7 @@ var should = chai.should();
 
 var Parser = require("../source/parser");
 var Builder = require("../source/builder");
-var prepare = require("../source/prepare").prepare;
+var prepare = require("../source/prepare");
 
 var builder = new Builder(function(stack, arrays) {
     console.log(stack.join('\n'));
