@@ -8,12 +8,14 @@ var stack; // result builder
 var staticArraysHolder = {}; // holder for static arrays
 var wrapper; // external wrapper functionality
 
+var empty = '', quote = '\'', comma = ', \''; // auxiliary
+
 function makeKey() {
     var text = new Array(12), possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz';
     for (var i = 0; i < 12; i++)
         text.push(possible.charAt(Math.floor(Math.random() * possible.length)));
 
-    return text.join('');
+    return text.join(empty);
 }
 
 function decodeAccessory(string) {
@@ -40,23 +42,19 @@ function decodeAccessory(string) {
 
     return {
         isStatic: isStatic,
-        value: (prefix ? '\'' : '') + result + (suffix ? '\'' : '')
+        value: (prefix ? quote : empty) + result + (suffix ? quote : empty)
     };
 }
 
 function formatText(tag, text) {
-    var stub = ' ';
-    if (_options.textSaveTags.indexOf(tag) !== -1)
-        stub = '\n';
-
-    return text.replace(_options.BREAK_LINE, stub).trim();
+    return text.replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' ')).trim();
 }
 
 function prepareKey(command, attributes) {
-    var result = '';
+    var result = empty;
     if (command === Command.elementOpen || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
-            result = ', \'' + (attributes[_options.staticKey] || makeKey()) + '\', ';
+            result = comma + (attributes[_options.staticKey] || makeKey()) + '\', ';
             delete attributes[_options.staticKey];
         } else {
             result = ', null, ';
@@ -66,7 +64,7 @@ function prepareKey(command, attributes) {
 }
 
 function prepareAttr(command, attributes) {
-    var result = '', attr, decode, arrayStaticKey = false;
+    var result = empty, attr, decode, arrayStaticKey = false;
     if (command === Command.elementOpen || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
             arrayStaticKey = attributes[_options.staticArray] || makeKey();
@@ -84,9 +82,9 @@ function prepareAttr(command, attributes) {
                     if (arrayStaticKey)
                         staticArraysHolder[arrayStaticKey].push(key, attr);
                     else
-                        result += ', \'' + key + '\', \'' + attr + '\'';
+                        result += comma + key + '\', \'' + attr + quote;
                 } else {
-                    result += ', \'' + key + '\', ' + decode.value;
+                    result += comma + key + '\', ' + decode.value;
                 }
             }
         }
@@ -95,14 +93,15 @@ function prepareAttr(command, attributes) {
 }
 
 function writeCommand(command, tag, attributes) {
-    stack.push(command + tag + '\'' + prepareKey(command, attributes) + prepareAttr(command, attributes) + Command.close);
+    stack.push(command + tag + quote + prepareKey(command, attributes) + prepareAttr(command, attributes)
+        + Command.close);
 }
 
 function writeText(text) {
     text = formatText(state.tag, text);
     if (text.length > 0) {
         var decode = decodeAccessory(text);
-        text = decode.isStatic ? ('\'' + text + '\'') : decode.value;
+        text = decode.isStatic ? (quote + text + quote) : decode.value;
         stack.push(Command.text + text + Command.close);
     }
 }
@@ -152,7 +151,7 @@ Builder.prototype.write = function (command) {
     var tag;
     switch (command.type) {
         case Mode.Tag:
-            tag = command.name.replace('/', '');
+            tag = command.name.replace('/', empty);
             if (command.name.indexOf('/') === 0) { // close tag case
                 if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name)
                     writeCommand(Command.elementClose, tag);
