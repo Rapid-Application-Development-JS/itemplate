@@ -1,477 +1,850 @@
-;(function(root, factory) {
-  if (typeof define === 'function' && define.amd) {
-    define([], factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory();
-  } else {
-    root.itemplate = factory();
-  }
-}(this, function() {
-/*
- * Original code by HTML Parser By John Resig (ejohn.org)
- * http://ejohn.org/blog/pure-javascript-html-parser/
- */
-
-// Regular Expressions for parsing tags and attributes
-var startTag = /^<([-A-Za-z0-9_]+)((?:[\s\w\-]+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,
-    endTag = /^<\/([-A-Za-z0-9_]+)[^>]*>/,
-    attr = /([-A-Za-z0-9_]+)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
-
-// Empty Elements - HTML 4.01
-var empty = makeMap("area,base,basefont,br,col,frame,hr,img,input,isindex,link,meta,param,embed");
-
-// Block Elements - HTML 4.01
-var block = makeMap("address,applet,blockquote,button,center,dd,del,dir,div,dl,dt,fieldset,form,frameset,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,p,pre,script,table,tbody,td,tfoot,th,thead,tr,ul");
-
-// Inline Elements - HTML 4.01
-var inline = makeMap("a,abbr,acronym,applet,b,basefont,bdo,big,br,button,cite,code,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var");
-
-// Elements that you can, intentionally, leave open
-// (and which close themselves)
-var closeSelf = makeMap("colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr");
-
-// Attributes that have their values filled in disabled="disabled"
-var fillAttrs = makeMap("checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected");
-
-// Special Elements (can contain anything),
-var special = makeMap("");//"script", "style"
-
-function makeMap(str) {
-    var obj = {}, items = str.split(",");
-    for (var i = 0; i < items.length; i++)
-        obj[items[i]] = true;
-    return obj;
-}
-
-var HTMLParser = function (html, handler) {
-    var index, chars, match, stack = [], last = html;
-    stack.last = function () {
-        return this[this.length - 1];
-    };
-
-    while (html) {
-        chars = true;
-
-        if (!stack.last() || !special[stack.last()]) {
-
-            // Comment
-            if (html.indexOf("<!--") == 0) {
-                index = html.indexOf("-->");
-
-                if (index >= 0) {
-                    if (handler.comment)
-                        handler.comment(html.substring(4, index));
-                    html = html.substring(index + 3);
-                    chars = false;
-                }
-
-                // end tag
-            } else if (html.indexOf("</") == 0) {
-                match = html.match(endTag);
-
-                if (match) {
-                    html = html.substring(match[0].length);
-                    match[0].replace(endTag, parseEndTag);
-                    chars = false;
-                }
-
-                // start tag
-            } else if (html.indexOf("<") == 0) {
-                match = html.match(startTag);
-                if (match) {
-                    html = html.substring(match[0].length);
-                    match[0].replace(startTag, parseStartTag);
-                    chars = false;
-                }
-            }
-
-            if (chars) {
-                index = html.indexOf("<");
-
-                var text = index < 0 ? html : html.substring(0, index);
-                html = index < 0 ? "" : html.substring(index);
-
-                if (handler.chars)
-                    handler.chars(text);
-            }
-
-        } else {
-            html = html.replace(new RegExp("(.*)<\/" + stack.last() + "[^>]*>"), function (all, text) {
-                text = text.replace(/<!--(.*?)-->/g, "$1")
-                    .replace(/<!\[CDATA\[(.*?)]]>/g, "$1");
-
-                if (handler.chars)
-                    handler.chars(text);
-
-                return "";
-            });
-
-            parseEndTag("", stack.last());
-        }
-
-        if (html == last)
-            throw "Parse Error: " + html;
-
-        last = html;
-    }
-
-    // Clean up any remaining tags
-    parseEndTag();
-
-    function parseStartTag(tag, tagName, rest, unary) {
-        tagName = tagName.toLowerCase();
-
-        if (block[tagName]) {
-            while (stack.last() && inline[stack.last()]) {
-                parseEndTag("", stack.last());
-            }
-        }
-
-        if (closeSelf[tagName] && stack.last() == tagName) {
-            parseEndTag("", tagName);
-        }
-
-        unary = empty[tagName] || !!unary;
-
-        if (!unary)
-            stack.push(tagName);
-
-        if (handler.start) {
-            var attrs = [];
-
-            rest.replace(attr, function (match, name) {
-                var value = arguments[2] ? arguments[2] :
-                    arguments[3] ? arguments[3] :
-                        arguments[4] ? arguments[4] :
-                            fillAttrs[name] ? name : "";
-
-                attrs.push({
-                    name: name,
-                    value: value,
-                    escaped: value.replace(/(^|[^\\])"/g, '$1\\\"')
-                });
-            });
-
-            if (handler.start)
-                handler.start(tagName, attrs, unary);
-        }
-    }
-
-    function parseEndTag(tag, tagName) {
-        var pos;
-
-        // If no tag name is provided, clean shop
-        if (!tagName)
-            pos = 0;
-
-        // Find the closest opened tag of the same type
-        else
-            for (pos = stack.length - 1; pos >= 0; pos--)
-                if (stack[pos] == tagName)
-                    break;
-
-        if (pos >= 0) {
-            // Close all the open elements, up the stack
-            for (var i = stack.length - 1; i >= pos; i--)
-                if (handler.end)
-                    handler.end(stack[i]);
-
-            // Remove the open elements from the stack
-            stack.length = pos;
-        }
-    }
-};
-// Consts
-var EXCEPTIONS = ["pre", "script"];
-var DUTY = ["evaluate"];
-var BREAK_LINE = /(\r\n|\n|\r)/gm;
-var NEW_LINE = "String.fromCharCode(10)";
-
-if (typeof special === 'object')
-    special[DUTY] = true;
-
-// variables
-var _helpers = {};
-var _result = [];
-var _staticArrays = {};
-var _currentTag = null;
-var _options = {
-    parameterName: "data",
-    functionName: function (filename, path) {
-        return filename;
-    },
-    template: {
-        evaluate: /<%([\s\S]+?)%>/g,
-        interpolate: /<%=([\s\S]+?)%>/g,
-        escape: /<%-([\s\S]+?)%>/g
-    },
-    escape: /[&<>]/g,
-    MAP: {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    },
-    ignore: "js",
-    accessory: {
-        open: "{%",
-        close: "%}"
-    },
-    staticKey: "static-key",
-    staticArray: "static-array"
-};
-
-function makeKey() {
-    var text = "", possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    for (var i = 0; i < 12; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
-}
-
-function escapeHTML(s) {
-    return s.replace(_options.escape, function (c) {
-        return _options.MAP[c];
-    });
-}
-
-function flushParser() {
-    _result.length = 0;
-    _staticArrays = {};
-    _currentTag = null;
-
-    _result.push('var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;');
-}
-
-function decodeTemplates(string, openTag, closeTag) {
-    var regex = new RegExp(openTag + '(.*?)' + closeTag, 'g');
-    var prefix = true;
-    var suffix = true;
-    var isStatic = true;
-
-    var result = string.replace(regex, function (match, p1, index, string) {
-        isStatic = false;
-
-        if (index !== 0)
-            p1 = "\'+" + p1;
-        else
-            prefix = false;
-
-        if ((string.length - (index + match.length)) > 0)
-            p1 += "+\'";
-        else
-            suffix = false;
-
-        return p1;
-    });
-
-    return {
-        isStatic: isStatic,
-        value: (prefix ? '\'' : '') + result + (suffix ? '\'' : ''),
-        unwrap: result
-    };
-}
-
-function encodeTemplates(string) {
-    return string
-        .replace(_options.template.interpolate, function (match, p1) {
-            return _options.accessory.open + p1 + _options.accessory.close;
-        })
-        .replace(_options.template.escape, function (match, p1) {
-            return _options.accessory.open + escapeHTML(p1) + _options.accessory.close;
-        })
-        .replace(_options.template.evaluate, function (match, p1) {
-            return "<evaluate>" + p1.replace(BREAK_LINE, " ").trim() + "</evaluate>";
-        });
-}
-
-function writeCommand(command, line, noEscape) {
-    var attribs = "";
-
-    if (line.length === 0) // don't write empty string or array
-        return;
-
-    if (typeof line === "string") {
-        if (noEscape)
-            attribs = line;
-        else
-            attribs = "'" + line.replace("'", "\\'") + "'"; // wrap attribute value
-
-    } else { // create formatted string from array
-        for (var i = 0; i < line.length; i++) {
-            if (i > 0) // add comma between parameters
-                attribs += ", ";
-
-            attribs += line[i];
-        }
-    }
-
-    // wrap in command
-    _result.push(command + "(" + attribs + ");");
-}
-
-function writeLine(string, noEscape) {
-    _result.push(noEscape ? string : string.replace(BREAK_LINE, " "));
-}
-
-function attrsWrapp(array) {
-    for (var i = 0, obj = {}; i < array.length; i += 1) {
-        obj[array[i].name] = array[i].value;
-    }
-    return obj;
-}
-
-// parsing of string
-function onopentag(name, attributes, unary) {
-    var attribs = attrsWrapp(attributes);
-    var args = ["'" + name + "'"];
-    var staticAttrs = [], attr;
-    var staticKey = false;
-    var keyFlag = false;
-    var staticArray = false;
-
-    // static array
-    if (attribs.hasOwnProperty(_options.staticArray)) {
-        staticArray = decodeTemplates(attribs[_options.staticArray], _options.accessory.open, _options.accessory.close);
-        staticArray = staticArray.isStatic ? staticArray.unwrap: staticArray.value;
-        staticArray = attribs[_options.staticArray] ? staticArray : makeKey();
-        delete attribs[_options.staticArray];
-    }
-
-    // static key
-    if (attribs.hasOwnProperty(_options.staticKey)) {
-        staticKey = decodeTemplates(attribs[_options.staticKey], _options.accessory.open, _options.accessory.close);
-        keyFlag= staticKey.isStatic;
-        staticKey = attribs[_options.staticKey] ? staticKey.value : makeKey();
-        delete attribs[_options.staticKey];
-    }
-
-    if (DUTY.indexOf(name) === -1) {
-        for (var key in attribs) {
-            if (!attribs.hasOwnProperty(key))
-                continue;
-
-            if (args.length == 1) {
-                args.push(null);
-                args.push(null);
-            }
-
-            attr = decodeTemplates(attribs[key], _options.accessory.open, _options.accessory.close);
-            if (staticArray && attr.isStatic) {
-                staticAttrs.push("'" + key + "'");
-                staticAttrs.push(attr.value);
-            } else {
-                args.push("'" + key + "'");
-                args.push(attr.value);
-            }
-        }
-
-        if (staticArray && !staticKey) {
-            args[1] = "'" + makeKey() + "'";
-        } else if (staticKey) {
-            args[1] = keyFlag ? "'" + staticKey + "'" : staticKey;
-        }
-
-        if (staticArray) {
-            _staticArrays[staticArray] = "[" + staticAttrs.join(",") + "]";
-            args[2] = staticArray;
-        }
-
-        if (unary)
-            if (_helpers.hasOwnProperty(name))
-                writeLine("helpers['" + name + "'](" + decodeAttrs(attribs) + ");", true);
-            else
-                writeCommand("v", args);
-        else
-            writeCommand("o", args);
-    }
-
-    _currentTag = name;
-}
-
-function decodeAttrs(obj) {
-    var result = ["{"];
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            if (result.length > 1)
-                result.push(",");
-
-            result.push(key + ":" +decodeTemplates(obj[key], _options.accessory.open, _options.accessory.close).value);
-        }
-    }
-    result.push("}");
-
-    return result.join("");
-}
-
-function ontext(text) {
-    var line;
-    if (DUTY.indexOf(_currentTag) !== -1) {
-        writeLine(text);
-    } else if (EXCEPTIONS.indexOf(_currentTag) === -1) {
-        line = text.replace(BREAK_LINE, "").trim();
-        if (line.length > 0)
-            writeCommand("t", decodeTemplates(line, _options.accessory.open, _options.accessory.close).value, true);
-    } else { // save format (break lines) for exception tags
-        var lines = text.split(BREAK_LINE);
-        for (var i = 0; i < lines.length; i++) {
-            line = lines[i];
-
-            if (BREAK_LINE.exec(line))
-                writeCommand("t", NEW_LINE, true);
-            else
-                writeCommand("t", decodeTemplates(line, _options.accessory.open, _options.accessory.close).value, true);
-        }
-    }
-}
-
-function onclosetag(tagname) {
-    if (DUTY.indexOf(tagname) === -1)
-        writeCommand("c", tagname);
-}
-
-var itemplate = {
-    compile: function (string, library) {
-        var resultFn;
-
-        flushParser();
-        HTMLParser(encodeTemplates(string), {
-            start: onopentag,
-            chars: ontext,
-            end: onclosetag
-        });
-
-        var fn = "";
-        for (var key in _staticArrays) {
-            if (_staticArrays.hasOwnProperty(key)) {
-                fn += "var " + key + "=" + _staticArrays[key] + ";";
-            }
-        }
-
-        if (library) {
-            fn += "return function(" + _options.parameterName + "){" + _result.join("") + "}";
-            resultFn = (new Function('lib', 'helpers', fn))(library, _helpers);
-        } else {
-            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _result.join(""));
-        }
-
-        return resultFn;
-    },
-    options: function (options) {
-        // mix options
-        for (var key in options) {
-            if (options.hasOwnProperty(key))
-                _options[key] = options[key];
-        }
-    },
-    registerHelper: function (name, fn) {
-        _helpers[name] = fn;
-    },
-    unregisterHelper: function (name) {
-        delete _helpers[name];
-    }
-};
-return itemplate;
-}));
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["itemplate"] = factory();
+	else
+		root["itemplate"] = factory();
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _options = __webpack_require__(1);
+	var prepare = __webpack_require__(2);
+	var Parser = __webpack_require__(3);
+	var Builder = __webpack_require__(5);
+
+	var wrapper = __webpack_require__(6).createWrapper();
+	var builder = new Builder(wrapper);
+	var parser = new Parser(builder);
+
+	var helpers = {};
+
+	var itemplate = {
+	    compile: function (string, library, fnName) {
+	        builder.reset();
+	        builder.set(Object.keys(helpers));
+	        wrapper.set(library, helpers, fnName);
+	        return parser.parseComplete(prepare(string));
+	    },
+	    options: function (options) {
+	        // mix options
+	        for (var key in options) {
+	            if (options.hasOwnProperty(key))
+	                _options[key] = options[key];
+	        }
+	    },
+	    registerHelper: function (name, fn) {
+	        helpers[name] = fn;
+	    },
+	    unregisterHelper: function (name) {
+	        delete helpers[name];
+	    }
+	};
+
+	module.exports = itemplate;
+
+/***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+	var _options = {
+	    BREAK_LINE: /(\r\n|\n|\r)/gm,
+	    template: {
+	        evaluate: /<%([\s\S]+?)%>/g,
+	        interpolate: /<%=([\s\S]+?)%>/g,
+	        escape: /<%-([\s\S]+?)%>/g
+	    },
+	    order: ['interpolate', 'escape', 'evaluate'],
+	    evaluate: {
+	        name: 'evaluate',
+	        open: '<evaluate>',
+	        close: '</evaluate>'
+	    },
+	    accessory: {
+	        open: '{%',
+	        close: '%}'
+	    },
+	    MAP: {
+	        '&': '&amp;',
+	        '<': '&lt;',
+	        '>': '&gt;',
+	        '"': '&quot;',
+	        '\'': '&#39;'
+	    },
+	    staticKey: 'static-key',
+	    staticArray: 'static-array',
+	    parameterName: 'data',
+	    // parse rules
+	    textSaveTags: ['pre', 'code'],
+	    voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
+	        'param', 'source', 'track', 'wbr']
+	};
+
+	module.exports = _options;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _options = __webpack_require__(1);
+
+	function escapeHTML(s) {
+	    return s.replace(_options.escape, function (c) {
+	        return _options.MAP[c];
+	    });
+	}
+
+	var methods = {
+	    evaluate: function (string) {
+	        return string.replace(_options.template.evaluate, function (match, p1) {
+	            return _options.evaluate.open + p1.replace(_options.BREAK_LINE, ' ').trim() + _options.evaluate.close;
+	        });
+	    },
+	    interpolate: function (string) {
+	        return string.replace(_options.template.interpolate, function (match, p1) {
+	            return _options.accessory.open + p1 + _options.accessory.close;
+	        });
+	    },
+	    escape: function (string) {
+	        return string.replace(_options.template.escape, function (match, p1) {
+	            return _options.accessory.open + escapeHTML(p1) + _options.accessory.close;
+	        });
+	    }
+	};
+
+	function prepare(string) {
+	    var result = string;
+	    for (var i = 0; i < _options.order.length; i++) {
+	        result = methods[_options.order[i]](result);
+	    }
+	    return result;
+	}
+
+	module.exports = prepare;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Mode = __webpack_require__(4);
+
+	function Parser(builder) {
+	    this._builder = builder;
+	    this.reset();
+	}
+
+	//**Public**//
+	Parser.prototype.reset = function Parser$reset() {
+	    this._state = {
+	        mode: Mode.Text,
+	        pos: 0,
+	        data: null,
+	        pendingText: null,
+	        pendingWrite: null,
+	        lastTag: null,
+	        isScript: false,
+	        needData: false,
+	        output: [],
+	        done: false
+	    };
+	    this._builder.reset();
+	};
+
+	Parser.prototype.parseChunk = function Parser$parseChunk(chunk) {
+	    this._state.needData = false;
+	    this._state.data = (this._state.data !== null) ? this._state.data.substr(this.pos) + chunk : chunk;
+	    while (this._state.pos < this._state.data.length && !this._state.needData) {
+	        this._parse(this._state);
+	    }
+	};
+
+	Parser.prototype.parseComplete = function Parser$parseComplete(data) {
+	    this.reset();
+	    this.parseChunk(data);
+	    return this.done();
+	};
+
+	Parser.prototype.done = function Parser$done() {
+	    this._state.done = true;
+	    this._parse(this._state);
+	    this._flushWrite();
+	    return this._builder.done();
+	};
+
+	//**Private**//
+	Parser.prototype._parse = function Parser$_parse() {
+	    switch (this._state.mode) {
+	        case Mode.Text:
+	            return this._parseText(this._state);
+	        case Mode.Tag:
+	            return this._parseTag(this._state);
+	        case Mode.Attr:
+	            return this._parseAttr(this._state);
+	        case Mode.CData:
+	            return this._parseCData(this._state);
+	        case Mode.Doctype:
+	            return this._parseDoctype(this._state);
+	        case Mode.Comment:
+	            return this._parseComment(this._state);
+	    }
+	};
+
+	Parser.prototype._writePending = function Parser$_writePending(node) {
+	    if (!this._state.pendingWrite) {
+	        this._state.pendingWrite = [];
+	    }
+	    this._state.pendingWrite.push(node);
+	};
+
+	Parser.prototype._flushWrite = function Parser$_flushWrite() {
+	    if (this._state.pendingWrite) {
+	        for (var i = 0, len = this._state.pendingWrite.length; i < len; i++) {
+	            var node = this._state.pendingWrite[i];
+	            this._builder.write(node);
+	        }
+	        this._state.pendingWrite = null;
+	    }
+	};
+
+	Parser.prototype._write = function Parser$_write(node) {
+	    this._flushWrite();
+	    this._builder.write(node);
+	};
+
+	Parser._re_parseText_scriptClose = /<\s*\/\s*script/ig;
+	Parser.prototype._parseText = function Parser$_parseText() {
+	    var state = this._state;
+	    var foundPos;
+	    if (state.isScript) {
+	        Parser._re_parseText_scriptClose.lastIndex = state.pos;
+	        foundPos = Parser._re_parseText_scriptClose.exec(state.data);
+	        foundPos = (foundPos) ? foundPos.index : -1;
+	    } else {
+	        foundPos = state.data.indexOf('<', state.pos);
+	    }
+	    var text = (foundPos === -1) ? state.data.substring(state.pos, state.data.length) : state.data.substring(state.pos, foundPos);
+	    if (foundPos < 0 && state.done) {
+	        foundPos = state.data.length;
+	    }
+	    if (foundPos < 0) {
+	        if (state.isScript) {
+	            state.needData = true;
+	            return;
+	        }
+	        if (!state.pendingText) {
+	            state.pendingText = [];
+	        }
+	        state.pendingText.push(state.data.substring(state.pos, state.data.length));
+	        state.pos = state.data.length;
+	    } else {
+	        if (state.pendingText) {
+	            state.pendingText.push(state.data.substring(state.pos, foundPos));
+	            text = state.pendingText.join('');
+	            state.pendingText = null;
+	        } else {
+	            text = state.data.substring(state.pos, foundPos);
+	        }
+	        if (text !== '') {
+	            this._write({type: Mode.Text, data: text});
+	        }
+	        state.pos = foundPos + 1;
+	        state.mode = Mode.Tag;
+	    }
+	};
+
+	Parser.re_parseTag = /\s*(\/?)\s*([^\s>\/]+)(\s*)\??(>?)/g;
+	Parser.prototype._parseTag = function Parser$_parseTag() {
+	    var state = this._state;
+	    Parser.re_parseTag.lastIndex = state.pos;
+	    var match = Parser.re_parseTag.exec(state.data);
+
+	    if (match) {
+	        if (!match[1] && match[2].substr(0, 3) === '!--') {
+	            state.mode = Mode.Comment;
+	            state.pos += 3;
+	            return;
+	        }
+	        if (!match[1] && match[2].substr(0, 8) === '![CDATA[') {
+	            state.mode = Mode.CData;
+	            state.pos += 8;
+	            return;
+	        }
+	        if (!match[1] && match[2].substr(0, 8) === '!DOCTYPE') {
+	            state.mode = Mode.Doctype;
+	            state.pos += 8;
+	            return;
+	        }
+	        if (!state.done && (state.pos + match[0].length) === state.data.length) {
+	            //We're at the and of the data, might be incomplete
+	            state.needData = true;
+	            return;
+	        }
+	        var raw;
+	        if (match[4] === '>') {
+	            state.mode = Mode.Text;
+	            raw = match[0].substr(0, match[0].length - 1);
+	        } else {
+	            state.mode = Mode.Attr;
+	            raw = match[0];
+	        }
+	        state.pos += match[0].length;
+	        var tag = {type: Mode.Tag, name: match[1] + match[2], raw: raw};
+	        if (state.mode === Mode.Attr) {
+	            state.lastTag = tag;
+	        }
+	        if (tag.name.toLowerCase() === 'script') {
+	            state.isScript = true;
+	        } else if (tag.name.toLowerCase() === '/script') {
+	            state.isScript = false;
+	        }
+	        if (state.mode === Mode.Attr) {
+	            this._writePending(tag);
+	        } else {
+	            this._write(tag);
+	        }
+	    } else {
+	        state.needData = true;
+	    }
+	};
+
+	Parser.re_parseAttr_findName = /\s*([^=<>\s'"\/]+)\s*/g;
+	Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
+	    Parser.re_parseAttr_findName.lastIndex = this._state.pos;
+	    var match = Parser.re_parseAttr_findName.exec(this._state.data);
+	    if (!match) {
+	        return null;
+	    }
+	    if (this._state.pos + match[0].length !== Parser.re_parseAttr_findName.lastIndex) {
+	        return null;
+	    }
+	    return {
+	        match: match[0],
+	        name: match[1]
+	    };
+	};
+	Parser.re_parseAttr_findValue = /\s*=\s*(?:'([^']*)'|"([^"]*)"|([^'"\s\/>]+))\s*/g;
+	Parser.re_parseAttr_findValue_last = /\s*=\s*['"]?(.*)$/g;
+	Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue() {
+	    // todo: parse {{ checked ? 'checked' : '' }} in input
+	    var state = this._state;
+	    Parser.re_parseAttr_findValue.lastIndex = state.pos;
+	    var match = Parser.re_parseAttr_findValue.exec(state.data);
+	    if (!match) {
+	        if (!state.done) {
+	            return null;
+	        }
+	        Parser.re_parseAttr_findValue_last.lastIndex = state.pos;
+	        match = Parser.re_parseAttr_findValue_last.exec(state.data);
+	        if (!match) {
+	            return null;
+	        }
+	        return {
+	            match: match[0],
+	            value: (match[1] !== '') ? match[1] : null
+	        };
+	    }
+	    if (state.pos + match[0].length !== Parser.re_parseAttr_findValue.lastIndex) {
+	        return null;
+	    }
+	    return {
+	        match: match[0],
+	        value: match[1] || match[2] || match[3]
+	    };
+	};
+	Parser.re_parseAttr_splitValue = /\s*=\s*['"]?/g;
+	Parser.re_parseAttr_selfClose = /(\s*\/\s*)(>?)/g;
+	Parser.prototype._parseAttr = function Parser$_parseAttr() {
+	    var state = this._state;
+	    var name_data = this._parseAttr_findName(state);
+	    if (!name_data || name_data.name === '?') {
+	        Parser.re_parseAttr_selfClose.lastIndex = state.pos;
+	        var matchTrailingSlash = Parser.re_parseAttr_selfClose.exec(state.data);
+	        if (matchTrailingSlash && matchTrailingSlash.index === state.pos) {
+	            if (!state.done && !matchTrailingSlash[2] && state.pos + matchTrailingSlash[0].length === state.data.length) {
+	                state.needData = true;
+	                return;
+	            }
+	            state.lastTag.raw += matchTrailingSlash[1];
+	            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null});
+	            state.pos += matchTrailingSlash[1].length;
+	        }
+	        var foundPos = state.data.indexOf('>', state.pos);
+	        if (foundPos < 0) {
+	            if (state.done) {
+	                state.lastTag.raw += state.data.substr(state.pos);
+	                state.pos = state.data.length;
+	                return;
+	            }
+	            state.needData = true;
+	        } else {
+	            // state.lastTag = null;
+	            state.pos = foundPos + 1;
+	            state.mode = Mode.Text;
+	        }
+	        return;
+	    }
+	    if (!state.done && state.pos + name_data.match.length === state.data.length) {
+	        state.needData = true;
+	        return null;
+	    }
+	    state.pos += name_data.match.length;
+	    var value_data = this._parseAttr_findValue(state);
+	    if (value_data) {
+	        if (!state.done && state.pos + value_data.match.length === state.data.length) {
+	            state.needData = true;
+	            state.pos -= name_data.match.length;
+	            return;
+	        }
+	        state.pos += value_data.match.length;
+	    } else {
+	        if (state.data.indexOf(' ', state.pos - 1)) {
+	            value_data = {
+	                match: '',
+	                value: null
+	            };
+
+	        } else {
+	            Parser.re_parseAttr_splitValue.lastIndex = state.pos;
+	            if (Parser.re_parseAttr_splitValue.exec(state.data)) {
+	                state.needData = true;
+	                state.pos -= name_data.match.length;
+	                return;
+	            }
+	            value_data = {
+	                match: '',
+	                value: null
+	            };
+	        }
+	    }
+	    state.lastTag.raw += name_data.match + value_data.match;
+
+	    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value});
+	};
+
+	Parser.re_parseCData_findEnding = /\]{1,2}$/;
+	Parser.prototype._parseCData = function Parser$_parseCData() {
+	    var state = this._state;
+	    var foundPos = state.data.indexOf(']]>', state.pos);
+	    if (foundPos < 0 && state.done) {
+	        foundPos = state.data.length;
+	    }
+	    if (foundPos < 0) {
+	        Parser.re_parseCData_findEnding.lastIndex = state.pos;
+	        var matchPartialCDataEnd = Parser.re_parseCData_findEnding.exec(state.data);
+	        if (matchPartialCDataEnd) {
+	            state.needData = true;
+	            return;
+	        }
+	        if (!state.pendingText) {
+	            state.pendingText = [];
+	        }
+	        state.pendingText.push(state.data.substr(state.pos, state.data.length));
+	        state.pos = state.data.length;
+	        state.needData = true;
+	    } else {
+	        var text;
+	        if (state.pendingText) {
+	            state.pendingText.push(state.data.substring(state.pos, foundPos));
+	            text = state.pendingText.join('');
+	            state.pendingText = null;
+	        } else {
+	            text = state.data.substring(state.pos, foundPos);
+	        }
+	        this._write({type: Mode.CData, data: text});
+	        state.mode = Mode.Text;
+	        state.pos = foundPos + 3;
+	    }
+	};
+
+	Parser.prototype._parseDoctype = function Parser$_parseDoctype() {
+	    var state = this._state;
+	    var foundPos = state.data.indexOf('>', state.pos);
+	    if (foundPos < 0 && state.done) {
+	        foundPos = state.data.length;
+	    }
+	    if (foundPos < 0) {
+	        Parser.re_parseCData_findEnding.lastIndex = state.pos;
+	        if (!state.pendingText) {
+	            state.pendingText = [];
+	        }
+	        state.pendingText.push(state.data.substr(state.pos, state.data.length));
+	        state.pos = state.data.length;
+	        state.needData = true;
+	    } else {
+	        var text;
+	        if (state.pendingText) {
+	            state.pendingText.push(state.data.substring(state.pos, foundPos));
+	            text = state.pendingText.join('');
+	            state.pendingText = null;
+	        } else {
+	            text = state.data.substring(state.pos, foundPos);
+	        }
+	        this._write({type: Mode.Doctype, data: text});
+	        state.mode = Mode.Text;
+	        state.pos = foundPos + 1;
+	    }
+	};
+
+	Parser.re_parseComment_findEnding = /\-{1,2}$/;
+	Parser.prototype._parseComment = function Parser$_parseComment() {
+	    var state = this._state;
+	    var foundPos = state.data.indexOf('-->', state.pos);
+	    if (foundPos < 0 && state.done) {
+	        foundPos = state.data.length;
+	    }
+	    if (foundPos < 0) {
+	        Parser.re_parseComment_findEnding.lastIndex = state.pos;
+	        var matchPartialCommentEnd = Parser.re_parseComment_findEnding.exec(state.data);
+	        if (matchPartialCommentEnd) {
+	            state.needData = true;
+	            return;
+	        }
+	        if (!state.pendingText) {
+	            state.pendingText = [];
+	        }
+	        state.pendingText.push(state.data.substr(state.pos, state.data.length));
+	        state.pos = state.data.length;
+	        state.needData = true;
+	    } else {
+	        var text;
+	        if (state.pendingText) {
+	            state.pendingText.push(state.data.substring(state.pos, foundPos));
+	            text = state.pendingText.join('');
+	            state.pendingText = null;
+	        } else {
+	            text = state.data.substring(state.pos, foundPos);
+	        }
+
+	        this._write({type: Mode.Comment, data: text});
+	        state.mode = Mode.Text;
+	        state.pos = foundPos + 3;
+	    }
+	};
+
+	module.exports = Parser;
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	var Mode = {
+	    Text: 'text',
+	    Tag: 'tag',
+	    Attr: 'attr',
+	    CData: 'cdata',
+	    Doctype: 'doctype',
+	    Comment: 'comment'
+	};
+
+	module.exports = Mode;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* private */
+	var _options = __webpack_require__(1);
+	var Mode = __webpack_require__(4);
+	var Command = __webpack_require__(6).Command;
+
+	var state; // current builder state
+	var stack; // result builder
+	var staticArraysHolder = {}; // holder for static arrays
+	var wrapper; // external wrapper functionality
+	var helpers; // keys for helpers
+
+	var empty = '', quote = '\'', comma = ', \''; // auxiliary
+
+	function makeKey() {
+	    var text = new Array(12), possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz';
+	    for (var i = 0; i < 12; i++)
+	        text.push(possible.charAt(Math.floor(Math.random() * possible.length)));
+
+	    return text.join(empty);
+	}
+
+	function decodeAccessory(string) {
+	    var regex = new RegExp(_options.accessory.open + '(.*?)' + _options.accessory.close, 'g');
+	    var prefix = true; var suffix = true; var isStatic = true;
+
+	    var result = string.replace(regex, function (match, p1, index, string) {
+	        isStatic = false;
+
+	        if (index !== 0)
+	            p1 = '\'+' + p1;
+	        else
+	            prefix = false;
+
+	        if ((string.length - (index + match.length)) > 0)
+	            p1 += '+\'';
+	        else
+	            suffix = false;
+
+	        return p1;
+	    });
+
+	    return {
+	        isStatic: isStatic,
+	        value: (prefix ? quote : empty) + result + (suffix ? quote : empty)
+	    };
+	}
+
+	function formatText(tag, text) {
+	    return text.replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' ')).trim();
+	}
+
+	function prepareKey(command, attributes) {
+	    var result = empty;
+	    if (command === Command.elementOpen || command === Command.elementVoid) {
+	        if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
+	            result = comma + (attributes[_options.staticKey] || makeKey()) + '\', ';
+	            delete attributes[_options.staticKey];
+	        } else {
+	            result = ', null, ';
+	        }
+	    }
+	    return result;
+	}
+
+	function prepareAttr(command, attributes) {
+	    var result = empty, attr, decode, arrayStaticKey = false;
+	    if (command === Command.elementOpen || command === Command.elementVoid) {
+	        if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
+	            arrayStaticKey = attributes[_options.staticArray] || makeKey();
+	            staticArraysHolder[arrayStaticKey] = [];
+	            delete attributes[_options.staticArray];
+	        }
+
+	        result = arrayStaticKey || null;
+	        for (var key in attributes) {
+	            attr = attributes[key];
+	            attr = (attr === null) ? key : attr;
+	            decode = decodeAccessory(attr);
+	            if (decode.isStatic) {
+	                if (arrayStaticKey)
+	                    staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + attr + quote);
+	                else
+	                    result += comma + key + '\', \'' + attr + quote;
+	            } else {
+	                result += comma + key + '\', ' + decode.value;
+	            }
+	        }
+	    }
+	    return result;
+	}
+
+	function decodeAttrs(obj) {
+	    var result = ['{'];
+	    for (var key in obj)
+	        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key]).value);
+	    result.push('}');
+
+	    return result.join(empty);
+	}
+
+	function writeCommand(command, tag, attributes) {
+	    stack.push(command + tag + quote + prepareKey(command, attributes) + prepareAttr(command, attributes)
+	        + Command.close);
+	}
+
+	function writeText(text) {
+	    text = formatText(state.tag, text);
+	    if (text.length > 0) {
+	        var decode = decodeAccessory(text);
+	        text = decode.isStatic ? (quote + text + quote) : decode.value;
+	        stack.push(Command.text + text + Command.close);
+	    }
+	}
+
+	function writeCode(text) {
+	    stack.push(formatText(state.tag, text));
+	}
+
+	function writeComment(text) {
+	    stack.push('\n// ' + text.replace(_options.BREAK_LINE, ' ') + '\n');
+	}
+
+	function writeAndCloseOpenState(isClosed) {
+	    var isShouldClose = true;
+	    if (state.tag) {
+	        if (helpers.indexOf(state.tag) !== -1) { // helper case
+	            stack.push('helpers[\'' + state.tag + '\'](' + decodeAttrs(state.attributes) + ');');
+	            isShouldClose = false;
+	        } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
+	            writeCommand(Command.elementVoid, state.tag, state.attributes);
+	            isShouldClose = false;
+	        } else if (state.tag !== _options.evaluate.name) { // standard mode
+	            writeCommand(Command.elementOpen, state.tag, state.attributes);
+	        } // if we write code, do nothing
+	    }
+
+	    // clear builder state for next tag
+	    state.tag = null;
+	    state.attributes = {};
+
+	    return isShouldClose; // should we close this tag: no if we have void element
+	}
+
+	/* public */
+	function Builder(functionWrapper) {
+	    wrapper = functionWrapper;
+	    this.reset();
+	}
+
+	Builder.prototype.reset = function () {
+	    stack = [];
+	    state = {
+	        tag: null,
+	        attributes: {}
+	    };
+	    staticArraysHolder = {};
+	};
+
+	Builder.prototype.set = function (helpersKeys) {
+	    helpers = helpersKeys;
+	};
+
+	Builder.prototype.write = function (command) {
+	    var tag;
+	    switch (command.type) {
+	        case Mode.Tag:
+	            tag = command.name.replace('/', empty);
+	            if (command.name.indexOf('/') === 0) { // close tag case
+	                if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name)
+	                    writeCommand(Command.elementClose, tag);
+	            } else { // open tag case
+	                writeAndCloseOpenState();
+	                state.tag = tag;
+	                state.attributes = {};
+	            }
+	            break;
+	        case Mode.Attr: // push attribute in state
+	            state.attributes[command.name] = command.data;
+	            break;
+	        case Mode.Text: // write text
+	            tag = state.tag;
+	            writeAndCloseOpenState();
+	            if (tag === _options.evaluate.name) {
+	                writeCode(command.data);
+	            } else {
+	                writeText(command.data);
+	            }
+	            break;
+	        case Mode.Comment: // write comments immediately
+	            writeComment(command.data);
+	            break;
+	    }
+	};
+
+	Builder.prototype.done = function () {
+	    return wrapper(stack, staticArraysHolder);
+	};
+
+	module.exports = Builder;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _options = __webpack_require__(1);
+
+	var Command = { // incremental DOM commands
+	    elementOpen: 'o(\'',
+	    elementVoid: 'v(\'',
+	    elementClose: 'c(\'',
+	    text: 't(',
+	    close: ');'
+	};
+
+	function createWrapper() {
+	    var _library, _helpers, _fnName;
+
+	    function wrapper(stack, holder) {
+	        var resultFn, fn = 'var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;';
+
+	        for (var key in holder) { // collect static arrays
+	            if (holder.hasOwnProperty(key))
+	                fn += 'var ' + key + '=[' + holder[key] + '];';
+	        }
+
+	        if (_library) {
+	            fn += 'return function(' + _options.parameterName + '){' + stack.join('') + '};';
+	            if (_fnName) // return function with closure as string
+	                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
+	            else // return function with closure
+	                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
+	        } else {
+	            if (_fnName) // plain function as string
+	                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
+	                    + fn + stack.join('') + '}';
+	            else // plain function
+	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', fn + stack.join(''));
+	        }
+
+	        return resultFn;
+	    }
+
+	    wrapper.set = function (library, helpers, fnName) {
+	        _library = library;
+	        _helpers = helpers;
+	        _fnName = fnName;
+	    };
+
+	    return wrapper;
+	}
+
+	module.exports = {
+	    createWrapper: createWrapper,
+	    Command: Command
+	};
+
+/***/ }
+/******/ ])
+});
+;
