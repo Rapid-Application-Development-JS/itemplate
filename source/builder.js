@@ -7,6 +7,7 @@ var state; // current builder state
 var stack; // result builder
 var staticArraysHolder = {}; // holder for static arrays
 var wrapper; // external wrapper functionality
+var helpers; // keys for helpers
 
 var empty = '', quote = '\'', comma = ', \''; // auxiliary
 
@@ -20,9 +21,7 @@ function makeKey() {
 
 function decodeAccessory(string) {
     var regex = new RegExp(_options.accessory.open + '(.*?)' + _options.accessory.close, 'g');
-    var prefix = true;
-    var suffix = true;
-    var isStatic = true;
+    var prefix = true; var suffix = true; var isStatic = true;
 
     var result = string.replace(regex, function (match, p1, index, string) {
         isStatic = false;
@@ -71,25 +70,32 @@ function prepareAttr(command, attributes) {
             staticArraysHolder[arrayStaticKey] = [];
             delete attributes[_options.staticArray];
         }
-        result = arrayStaticKey || null;
 
+        result = arrayStaticKey || null;
         for (var key in attributes) {
-            if (attributes.hasOwnProperty(key)) {
-                attr = attributes[key];
-                attr = (attr === null) ? key : attr;
-                decode = decodeAccessory(attr);
-                if (decode.isStatic) {
-                    if (arrayStaticKey)
-                        staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + attr + quote);
-                    else
-                        result += comma + key + '\', \'' + attr + quote;
-                } else {
-                    result += comma + key + '\', ' + decode.value;
-                }
+            attr = attributes[key];
+            attr = (attr === null) ? key : attr;
+            decode = decodeAccessory(attr);
+            if (decode.isStatic) {
+                if (arrayStaticKey)
+                    staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + attr + quote);
+                else
+                    result += comma + key + '\', \'' + attr + quote;
+            } else {
+                result += comma + key + '\', ' + decode.value;
             }
         }
     }
     return result;
+}
+
+function decodeAttrs(obj) {
+    var result = ['{'];
+    for (var key in obj)
+        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key]).value);
+    result.push('}');
+
+    return result.join(empty);
 }
 
 function writeCommand(command, tag, attributes) {
@@ -117,7 +123,10 @@ function writeComment(text) {
 function writeAndCloseOpenState(isClosed) {
     var isShouldClose = true;
     if (state.tag) {
-        if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
+        if (helpers.indexOf(state.tag) !== -1) { // helper case
+            stack.push('helpers[\'' + state.tag + '\'](' + decodeAttrs(state.attributes) + ');');
+            isShouldClose = false;
+        } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
             writeCommand(Command.elementVoid, state.tag, state.attributes);
             isShouldClose = false;
         } else if (state.tag !== _options.evaluate.name) { // standard mode
@@ -145,6 +154,10 @@ Builder.prototype.reset = function () {
         attributes: {}
     };
     staticArraysHolder = {};
+};
+
+Builder.prototype.set = function (helpersKeys) {
+    helpers = helpersKeys;
 };
 
 Builder.prototype.write = function (command) {

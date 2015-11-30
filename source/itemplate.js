@@ -12,6 +12,7 @@ var helpers = {};
 var itemplate = {
     compile: function (string, library, fnName) {
         builder.reset();
+        builder.set(Object.keys(helpers));
         wrapper.set(library, helpers, fnName);
         return parser.parseComplete(prepare(string));
     },
@@ -23,10 +24,10 @@ var itemplate = {
         }
     },
     registerHelper: function (name, fn) {
-        //helpers[name] = fn; // todo
+        helpers[name] = fn;
     },
     unregisterHelper: function (name) {
-        //delete helpers[name]; //todo
+        delete helpers[name];
     }
 };
 
