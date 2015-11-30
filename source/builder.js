@@ -180,7 +180,7 @@ Builder.prototype.write = function (command) {
 };
 
 Builder.prototype.done = function () {
-    wrapper(stack, staticArraysHolder);
+    return wrapper(stack, staticArraysHolder);
 };
 
 module.exports = Builder;

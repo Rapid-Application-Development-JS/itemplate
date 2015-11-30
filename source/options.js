@@ -1,10 +1,3 @@
-var options = function (options) { // todo
-    for (var key in options) { // mix options
-        if (options.hasOwnProperty(key) && _options.hasOwnProperty(key))
-            _options[key] = options[key];
-    }
-};
-
 var _options = {
     BREAK_LINE: /(\r\n|\n|\r)/gm,
     template: {

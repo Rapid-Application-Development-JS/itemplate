@@ -8,8 +8,10 @@ var Command = { // incremental DOM commands
     close: ');'
 };
 
-function Wrapper(library, helpers, callback, fnName) {
-    return function (stack, holder) {
+function createWrapper() {
+    var _library, _helpers, _fnName;
+
+    function wrapper(stack, holder) {
         var resultFn, fn = 'var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;';
 
         for (var key in holder) { // collect static arrays
@@ -17,25 +19,33 @@ function Wrapper(library, helpers, callback, fnName) {
                 fn += 'var ' + key + '=[' + holder[key] + '];';
         }
 
-        if (library) {
+        if (_library) {
             fn += 'return function(' + _options.parameterName + '){' + stack.join('') + '};';
-            if (fnName) // return function with closure as string
-                resultFn = 'function ' + fnName + '(lib, helpers){' + fn + '}';
+            if (_fnName) // return function with closure as string
+                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
             else // return function with closure
-                resultFn = (new Function('lib', 'helpers', fn))(library, helpers);
+                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
         } else {
-            if (fnName) // plain function as string
-                resultFn = 'function ' + fnName + '(' + _options.parameterName + ', lib, helpers){'
+            if (_fnName) // plain function as string
+                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
                     + fn + stack.join('') + '}';
             else // plain function
                 resultFn = new Function(_options.parameterName, 'lib', 'helpers', fn + stack.join(''));
         }
 
-        callback(resultFn);
+        return resultFn;
     }
+
+    wrapper.set = function (library, helpers, fnName) {
+        _library = library;
+        _helpers = helpers;
+        _fnName = fnName;
+    };
+
+    return wrapper;
 }
 
 module.exports = {
-    Wrapper: Wrapper,
+    createWrapper: createWrapper,
     Command: Command
 };

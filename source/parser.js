@@ -33,14 +33,14 @@ Parser.prototype.parseChunk = function Parser$parseChunk(chunk) {
 Parser.prototype.parseComplete = function Parser$parseComplete(data) {
     this.reset();
     this.parseChunk(data);
-    this.done();
+    return this.done();
 };
 
 Parser.prototype.done = function Parser$done() {
     this._state.done = true;
     this._parse(this._state);
     this._flushWrite();
-    this._builder.done();
+    return this._builder.done();
 };
 
 //**Private**//

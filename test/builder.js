@@ -2,32 +2,12 @@ var chai = require("chai");
 chai.use(require('chai-fuzzy'));
 var should = chai.should();
 
-var Parser = require("../source/parser");
-var Builder = require("../source/builder");
-var prepare = require("../source/prepare");
-var Wrapper = require("../source/wrapper").Wrapper;
-
-var builder = new Builder(Wrapper(
-    {},
-    undefined,
-    function (fn) {
-        console.log(fn);
-    },
-    'myFunction'));
-var parser = new Parser(builder);
+var itemplate = require("../source/itemplate");
 
 describe("0.1: Parser checking", function () {
-
-    beforeEach(function () {
-        builder.reset();
-    });
-
-    it("0.1.1: Builder exist", function () {
-        Builder.should.be.a('function');
-    });
-
     it("0.1.2: plain html", function () {
         var html = require('fs').readFileSync('./test/data/test6.html').toString();
-        parser.parseComplete(prepare(html));
+        var template = itemplate.compile(html, undefined, 'myFunction');
+        console.log(template);
     });
 });
