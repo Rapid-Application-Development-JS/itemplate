@@ -5,12 +5,15 @@ var should = chai.should();
 var Parser = require("../source/parser");
 var Builder = require("../source/builder");
 var prepare = require("../source/prepare");
+var Wrapper = require("../source/wrapper").Wrapper;
 
-var builder = new Builder(function(stack, arrays) {
-    console.log(stack.join('\n'));
-    console.log();
-    console.log(arrays);
-});
+var builder = new Builder(Wrapper(
+    {},
+    undefined,
+    function (fn) {
+        console.log(fn);
+    },
+    'myFunction'));
 var parser = new Parser(builder);
 
 describe("0.1: Parser checking", function () {

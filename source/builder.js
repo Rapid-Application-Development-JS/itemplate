@@ -80,7 +80,7 @@ function prepareAttr(command, attributes) {
                 decode = decodeAccessory(attr);
                 if (decode.isStatic) {
                     if (arrayStaticKey)
-                        staticArraysHolder[arrayStaticKey].push(key, attr);
+                        staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + attr + quote);
                     else
                         result += comma + key + '\', \'' + attr + quote;
                 } else {

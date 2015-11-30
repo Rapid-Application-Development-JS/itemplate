@@ -8,22 +8,27 @@ var Command = { // incremental DOM commands
     close: ');'
 };
 
-function Wrapper(library, helpers, callback) {
+function Wrapper(library, helpers, callback, fnName) {
     return function (stack, holder) {
-        var resultFn, fn = '';
+        var resultFn, fn = 'var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;';
 
-        stack.unshift('var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;'); // todo
-        for (var key in holder) {
-            if (holder.hasOwnProperty(key)) {
-                fn += 'var ' + key + '=' + holder[key] + ';';
-            }
+        for (var key in holder) { // collect static arrays
+            if (holder.hasOwnProperty(key))
+                fn += 'var ' + key + '=[' + holder[key] + '];';
         }
 
         if (library) {
-            fn += 'return function(' + _options.parameterName + '){' + stack.join('') + '}';
-            resultFn = (new Function('lib', 'helpers', fn))(library, helpers);
+            fn += 'return function(' + _options.parameterName + '){' + stack.join('') + '};';
+            if (fnName) // return function with closure as string
+                resultFn = 'function ' + fnName + '(lib, helpers){' + fn + '}';
+            else // return function with closure
+                resultFn = (new Function('lib', 'helpers', fn))(library, helpers);
         } else {
-            resultFn = new Function(_options.parameterName, 'lib', 'helpers', stack.join(''));
+            if (fnName) // plain function as string
+                resultFn = 'function ' + fnName + '(' + _options.parameterName + ', lib, helpers){'
+                    + fn + stack.join('') + '}';
+            else // plain function
+                resultFn = new Function(_options.parameterName, 'lib', 'helpers', fn + stack.join(''));
         }
 
         callback(resultFn);

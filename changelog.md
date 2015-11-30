@@ -2,6 +2,7 @@
 * new parser(less stronger then earlier) based on htmlparser (why is it important, question of performance)
 * tests
 * comments in itemplate functions
+* compile to text for project builder
 
 todo extended mode for attributes
 /**
