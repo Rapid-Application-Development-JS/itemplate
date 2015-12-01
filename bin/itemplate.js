@@ -355,6 +355,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Parser.re_parseAttr_findName = /\s*([^=<>\s'"\/]+)\s*/g;
 	Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
+	    // todo: parse {{ checked ? 'checked' : '' }} in input
 	    Parser.re_parseAttr_findName.lastIndex = this._state.pos;
 	    var match = Parser.re_parseAttr_findName.exec(this._state.data);
 	    if (!match) {
@@ -371,7 +372,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Parser.re_parseAttr_findValue = /\s*=\s*(?:'([^']*)'|"([^"]*)"|([^'"\s\/>]+))\s*/g;
 	Parser.re_parseAttr_findValue_last = /\s*=\s*['"]?(.*)$/g;
 	Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue() {
-	    // todo: parse {{ checked ? 'checked' : '' }} in input
 	    var state = this._state;
 	    Parser.re_parseAttr_findValue.lastIndex = state.pos;
 	    var match = Parser.re_parseAttr_findValue.exec(state.data);
@@ -610,33 +610,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function decodeAccessory(string) {
-	    var regex = new RegExp(_options.accessory.open + '(.*?)' + _options.accessory.close, 'g');
-	    var prefix = true; var suffix = true; var isStatic = true;
+	    var regex = new RegExp(_options.accessory.open + '|' + _options.accessory.close, 'g');
+	    var code; var isStatic = true;
 
-	    var result = string.replace(regex, function (match, p1, index, string) {
-	        isStatic = false;
+	    code = string.split(regex).map(function (piece, i) {
+	        if (i % 2) {
+	            isStatic = false;
+	            return ' + ' + piece.trim() + ' + ';
+	        } else {
+	            return JSON.stringify(piece);
+	        }
+	    }).join('');
 
-	        if (index !== 0)
-	            p1 = '\'+' + p1;
-	        else
-	            prefix = false;
+	    // micro-optimizations (remove appending empty strings)
+	    code = code.replace(/^"" \+ | \+ ""$/g, '').replace(/ \+ "" \+ /g, ' + ');
 
-	        if ((string.length - (index + match.length)) > 0)
-	            p1 += '+\'';
-	        else
-	            suffix = false;
-
-	        return p1;
-	    });
-
-	    return {
-	        isStatic: isStatic,
-	        value: (prefix ? quote : empty) + result + (suffix ? quote : empty)
-	    };
+	    return { value: code, isStatic: isStatic};
 	}
 
 	function formatText(tag, text) {
-	    return text.replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' ')).trim();
+	    return text
+	        .replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' '))
+	        .replace(/&#(\d+);/g, function(match, dec) {
+	            return String.fromCharCode(dec);
+	        })
+	        .trim();
 	}
 
 	function prepareKey(command, attributes) {
@@ -752,6 +750,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Builder.prototype.write = function (command) {
 	    var tag;
+	    console.log(command)
 	    switch (command.type) {
 	        case Mode.Tag:
 	            tag = command.name.replace('/', empty);
@@ -823,8 +822,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (_fnName) // plain function as string
 	                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
 	                    + fn + stack.join('') + '}';
-	            else // plain function
+	            else{ // plain function
+	            console.log(stack.join(''))
 	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', fn + stack.join(''));
+	                }
 	        }
 
 	        return resultFn;

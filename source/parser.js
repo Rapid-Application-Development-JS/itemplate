@@ -181,6 +181,7 @@ Parser.prototype._parseTag = function Parser$_parseTag() {
 
 Parser.re_parseAttr_findName = /\s*([^=<>\s'"\/]+)\s*/g;
 Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
+    // todo: parse {{ checked ? 'checked' : '' }} in input
     Parser.re_parseAttr_findName.lastIndex = this._state.pos;
     var match = Parser.re_parseAttr_findName.exec(this._state.data);
     if (!match) {
@@ -197,7 +198,6 @@ Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
 Parser.re_parseAttr_findValue = /\s*=\s*(?:'([^']*)'|"([^"]*)"|([^'"\s\/>]+))\s*/g;
 Parser.re_parseAttr_findValue_last = /\s*=\s*['"]?(.*)$/g;
 Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue() {
-    // todo: parse {{ checked ? 'checked' : '' }} in input
     var state = this._state;
     Parser.re_parseAttr_findValue.lastIndex = state.pos;
     var match = Parser.re_parseAttr_findValue.exec(state.data);

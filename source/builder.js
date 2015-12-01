@@ -20,33 +20,31 @@ function makeKey() {
 }
 
 function decodeAccessory(string) {
-    var regex = new RegExp(_options.accessory.open + '(.*?)' + _options.accessory.close, 'g');
-    var prefix = true; var suffix = true; var isStatic = true;
+    var regex = new RegExp(_options.accessory.open + '|' + _options.accessory.close, 'g');
+    var code; var isStatic = true;
 
-    var result = string.replace(regex, function (match, p1, index, string) {
-        isStatic = false;
+    code = string.split(regex).map(function (piece, i) {
+        if (i % 2) {
+            isStatic = false;
+            return ' + ' + piece.trim() + ' + ';
+        } else {
+            return JSON.stringify(piece);
+        }
+    }).join('');
 
-        if (index !== 0)
-            p1 = '\'+' + p1;
-        else
-            prefix = false;
+    // micro-optimizations (remove appending empty strings)
+    code = code.replace(/^"" \+ | \+ ""$/g, '').replace(/ \+ "" \+ /g, ' + ');
 
-        if ((string.length - (index + match.length)) > 0)
-            p1 += '+\'';
-        else
-            suffix = false;
-
-        return p1;
-    });
-
-    return {
-        isStatic: isStatic,
-        value: (prefix ? quote : empty) + result + (suffix ? quote : empty)
-    };
+    return { value: code, isStatic: isStatic};
 }
 
 function formatText(tag, text) {
-    return text.replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' ')).trim();
+    return text
+        .replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' '))
+        .replace(/&#(\d+);/g, function(match, dec) {
+            return String.fromCharCode(dec);
+        })
+        .trim();
 }
 
 function prepareKey(command, attributes) {

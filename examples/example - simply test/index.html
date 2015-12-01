@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>incremental-dom</title>
+    <script src="//ajax.googleapis.com/ajax/libs/incrementaldom/0.2.0/incremental-dom.js"></script>
+    <script src="../../bin/itemplate.js"></script>
+</head>
+<body>
+<div id="container"></div>
+<script type="x-template" id="underscore-template">
+    <!--some text with ' and <&> -->
+    <pre>
+        kjhaskdjhl laskdjlksadj lksdjk lkjhsd\'hgasd hjgakj kjh"ghgsdf" \n  &#60; &#62; hjgfd \n
+        &#39640;&#32423;&#31243;&#24207;&#35774;&#35745;
+    </pre>
+</script>
+<script>
+    var patch = IncrementalDOM.patch;
+    var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
+    patch(document.querySelector('#container'), render);
+</script>
+</body>
+</html>
