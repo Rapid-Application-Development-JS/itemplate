@@ -1,9 +1,7 @@
 var _options = require('./options');
 
-function escapeHTML(s) {
-    return s.replace(_options.escape, function (c) {
-        return _options.MAP[c];
-    });
+function replacer(match, p1) {
+    return _options.accessory.open + p1 + _options.accessory.close;
 }
 
 var methods = {
@@ -13,14 +11,10 @@ var methods = {
         });
     },
     interpolate: function (string) {
-        return string.replace(_options.template.interpolate, function (match, p1) {
-            return _options.accessory.open + p1 + _options.accessory.close;
-        });
+        return string.replace(_options.template.interpolate, replacer);
     },
     escape: function (string) {
-        return string.replace(_options.template.escape, function (match, p1) {
-            return _options.accessory.open + escapeHTML(p1) + _options.accessory.close;
-        });
+        return string.replace(_options.template.escape, replacer);
     }
 };
 

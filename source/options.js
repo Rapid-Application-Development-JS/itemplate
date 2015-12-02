@@ -16,13 +16,6 @@ var _options = {
         close: '%}'
     },
     emptyString: true,
-    MAP: {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        '\'': '&#39;'
-    },
     staticKey: 'static-key',
     staticArray: 'static-array',
     parameterName: 'data',
