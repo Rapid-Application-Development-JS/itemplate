@@ -113,6 +113,7 @@ var backboneInit;
 
         initialize: function () {
             this.model.bind('change', this.render, this);
+            console.log(this.itemplate)
         },
 
         render: function () {

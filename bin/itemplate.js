@@ -112,7 +112,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        close: '%}'
 	    },
 	    // build options
-	    emptyString: true,
+	    emptyString: false,
 	    staticKey: 'static-key',
 	    staticArray: 'static-array',
 	    parameterName: 'data',
@@ -631,14 +631,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function formatText(text) {
-	    return text.replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); }).trim();
+	    return text.trim().replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); });
 	}
 
 	function prepareKey(command, attributes) {
-	    var result = empty;
+	    var result = empty; var decode; var stub;
 	    if (command === Command.elementOpen || command === Command.elementVoid) {
 	        if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
-	            result = comma + (attributes[_options.staticKey] || makeKey()) + '", ';
+	            decode = decodeAccessory(attributes[_options.staticKey] || makeKey());
+	            stub = decode.isStatic ? '"' : empty;
+	            result = ', ' + stub + decode.value + stub + ', ';
 	            delete attributes[_options.staticKey];
 	        } else {
 	            result = ', null, ';
@@ -651,7 +653,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var result = empty, attr, decode, arrayStaticKey = false;
 	    if (command === Command.elementOpen || command === Command.elementVoid) {
 	        if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
-	            arrayStaticKey = attributes[_options.staticArray] || makeKey();
+	            arrayStaticKey =attributes[_options.staticArray] || makeKey(); // todo decodeAccessory
 	            staticArraysHolder[arrayStaticKey] = [];
 	            delete attributes[_options.staticArray];
 	        }

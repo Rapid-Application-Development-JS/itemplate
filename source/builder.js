@@ -55,10 +55,12 @@ function formatText(text) {
 }
 
 function prepareKey(command, attributes) {
-    var result = empty;
+    var result = empty; var decode; var stub;
     if (command === Command.elementOpen || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
-            result = comma + (attributes[_options.staticKey] || makeKey()) + '", ';
+            decode = decodeAccessory(attributes[_options.staticKey] || makeKey());
+            stub = decode.isStatic ? '"' : empty;
+            result = ', ' + stub + decode.value + stub + ', ';
             delete attributes[_options.staticKey];
         } else {
             result = ', null, ';
