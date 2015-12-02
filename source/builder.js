@@ -51,7 +51,7 @@ function decodeAccessory(string, force) {
 }
 
 function formatText(text) {
-    return text.replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); }).trim();
+    return text.trim().replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); });
 }
 
 function prepareKey(command, attributes) {
