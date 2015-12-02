@@ -637,7 +637,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function prepareKey(command, attributes) {
 	    var result = empty; var decode; var stub;
-	    if (command === Command.elementOpen || command === Command.elementVoid) {
+	    if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
 	        if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
 	            decode = decodeAccessory(attributes[_options.staticKey] || makeKey());
 	            stub = decode.isStatic ? '"' : empty;
@@ -652,7 +652,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function prepareAttr(command, attributes) {
 	    var result = empty, attr, decode, arrayStaticKey = false;
-	    if (command === Command.elementOpen || command === Command.elementVoid) {
+	    if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
 	        if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
 	            arrayStaticKey = attributes[_options.staticArray] || makeKey();
 	            staticArraysHolder[arrayStaticKey] = [];
@@ -784,10 +784,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _options = __webpack_require__(1);
 
 	var Command = { // incremental DOM commands
-	    elementOpen: 'o("',
-	    elementVoid: 'v("',
-	    elementClose: 'c("',
-	    text: 't(',
+	    elementOpen: 'elementOpen("',
+	    elementVoid: 'elementVoid("',
+	    elementClose: 'elementClose("',
+	    text: 'text(',
 	    close: ');'
 	};
 
@@ -795,7 +795,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _library, _helpers, _fnName;
 
 	    function wrapper(stack, holder) {
-	        var resultFn, fn = 'var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;';
+	        var resultFn, fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
+	            'elementVoid=lib.elementVoid;';
 
 	        for (var key in holder) { // collect static arrays
 	            if (holder.hasOwnProperty(key))

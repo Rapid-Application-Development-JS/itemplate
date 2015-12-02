@@ -57,7 +57,7 @@ function formatText(text) {
 
 function prepareKey(command, attributes) {
     var result = empty; var decode; var stub;
-    if (command === Command.elementOpen || command === Command.elementVoid) {
+    if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
             decode = decodeAccessory(attributes[_options.staticKey] || makeKey());
             stub = decode.isStatic ? '"' : empty;
@@ -72,7 +72,7 @@ function prepareKey(command, attributes) {
 
 function prepareAttr(command, attributes) {
     var result = empty, attr, decode, arrayStaticKey = false;
-    if (command === Command.elementOpen || command === Command.elementVoid) {
+    if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
         if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
             arrayStaticKey = attributes[_options.staticArray] || makeKey();
             staticArraysHolder[arrayStaticKey] = [];

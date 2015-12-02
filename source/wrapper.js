@@ -1,10 +1,10 @@
 var _options = require('./options');
 
 var Command = { // incremental DOM commands
-    elementOpen: 'o("',
-    elementVoid: 'v("',
-    elementClose: 'c("',
-    text: 't(',
+    elementOpen: 'elementOpen("',
+    elementVoid: 'elementVoid("',
+    elementClose: 'elementClose("',
+    text: 'text(',
     close: ');'
 };
 
@@ -12,7 +12,8 @@ function createWrapper() {
     var _library, _helpers, _fnName;
 
     function wrapper(stack, holder) {
-        var resultFn, fn = 'var o=lib.elementOpen,c=lib.elementClose,t=lib.text,v=lib.elementVoid;';
+        var resultFn, fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
+            'elementVoid=lib.elementVoid;';
 
         for (var key in holder) { // collect static arrays
             if (holder.hasOwnProperty(key))

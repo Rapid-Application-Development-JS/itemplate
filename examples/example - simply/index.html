@@ -66,6 +66,7 @@
     };
 
     var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
+    console.log(render.toString());
     patch(document.querySelector('#container'), render, templateData);
 </script>
 </body>
