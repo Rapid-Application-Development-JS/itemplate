@@ -21,12 +21,24 @@ function makeKey() {
 
 function decodeAccessory(string) {
     var regex = new RegExp(_options.accessory.open + '|' + _options.accessory.close, 'g');
-    var code; var isStatic = true;
+    var code;
+    var isStatic = true, openStub, closeStub;
 
     code = string.split(regex).map(function (piece, i) {
+        openStub = '';
+        closeStub = '';
+
         if (i % 2) {
             isStatic = false;
-            return ' + ' + piece.trim() + ' + ';
+            piece = piece.trim();
+            if (_options.emptyString) { // undefined as empty string
+                if (piece.indexOf(' ') !== -1) {
+                    openStub = '(';
+                    closeStub = ')';
+                }
+                return ' + ' + openStub + piece + closeStub + '||\'\' + ';
+            } else
+                return ' + ' + piece + ' + ';
         } else {
             return JSON.stringify(piece);
         }
@@ -35,13 +47,13 @@ function decodeAccessory(string) {
     // micro-optimizations (remove appending empty strings)
     code = code.replace(/^"" \+ | \+ ""$/g, '').replace(/ \+ "" \+ /g, ' + ');
 
-    return { value: code, isStatic: isStatic};
+    return {value: code, isStatic: isStatic};
 }
 
 function formatText(tag, text) {
     return text
         .replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' '))
-        .replace(/&#(\d+);/g, function(match, dec) {
+        .replace(/&#(\d+);/g, function (match, dec) {
             return String.fromCharCode(dec);
         })
         .trim();

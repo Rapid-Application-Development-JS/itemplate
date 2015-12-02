@@ -5,6 +5,7 @@
 * compile to text for project builder
 * webpack
 * special HTML entities like &#62; &#60; or &#8364;
+* undefined/null/false as empty string in <%= & <%-
 
 todo extended mode for attributes
 /**

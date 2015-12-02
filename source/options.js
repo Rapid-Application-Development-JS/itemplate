@@ -15,6 +15,7 @@ var _options = {
         open: '{%',
         close: '%}'
     },
+    emptyString: true,
     MAP: {
         '&': '&amp;',
         '<': '&lt;',
