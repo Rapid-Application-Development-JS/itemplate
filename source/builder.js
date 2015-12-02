@@ -36,7 +36,8 @@ function decodeAccessory(string, force) {
                     openStub = '(';
                     closeStub = ')';
                 }
-                return ' + ' + openStub + piece + closeStub + '||"" + ';
+                return ' + (' + openStub + piece + closeStub + ' === undefined ? "" : '
+                    + openStub + piece + closeStub + ') + ';
             } else
                 return ' + ' + piece + ' + ';
         } else {

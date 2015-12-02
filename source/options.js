@@ -17,7 +17,7 @@ var _options = {
         close: '%}'
     },
     // build options
-    emptyString: false,
+    emptyString: true,
     staticKey: 'static-key',
     staticArray: 'static-array',
     parameterName: 'data',

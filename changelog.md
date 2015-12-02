@@ -5,7 +5,10 @@
 * compile to text for project builder
 * webpack
 * special HTML entities like &#62; &#60; or &#8364;
-* undefined/null/false as empty string in <%= & <%-
+* undefined as empty string in <%= & <%-
+* Correctly compile newline, apostrophes and quotes
+* Allow "&lt;" and "&gt;" after evaluation
+* Tolerate "<" and ">" in evalutation fragments
 
 todo extended mode for attributes
 /**

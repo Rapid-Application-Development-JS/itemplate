@@ -112,7 +112,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        close: '%}'
 	    },
 	    // build options
-	    emptyString: false,
+	    emptyString: true,
 	    staticKey: 'static-key',
 	    staticArray: 'static-array',
 	    parameterName: 'data',
@@ -616,7 +616,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    openStub = '(';
 	                    closeStub = ')';
 	                }
-	                return ' + ' + openStub + piece + closeStub + '||"" + ';
+	                return ' + (' + openStub + piece + closeStub + ' === undefined ? "" : '
+	                    + openStub + piece + closeStub + ') + ';
 	            } else
 	                return ' + ' + piece + ' + ';
 	        } else {
@@ -653,7 +654,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var result = empty, attr, decode, arrayStaticKey = false;
 	    if (command === Command.elementOpen || command === Command.elementVoid) {
 	        if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
-	            arrayStaticKey =attributes[_options.staticArray] || makeKey(); // todo decodeAccessory
+	            arrayStaticKey = attributes[_options.staticArray] || makeKey();
 	            staticArraysHolder[arrayStaticKey] = [];
 	            delete attributes[_options.staticArray];
 	        }
