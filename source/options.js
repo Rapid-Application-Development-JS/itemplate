@@ -1,5 +1,6 @@
 var _options = {
     BREAK_LINE: /(\r\n|\n|\r)/gm,
+    // prepare options
     template: {
         evaluate: /<%([\s\S]+?)%>/g,
         interpolate: /<%=([\s\S]+?)%>/g,
@@ -15,11 +16,12 @@ var _options = {
         open: '{%',
         close: '%}'
     },
+    // build options
     emptyString: true,
     staticKey: 'static-key',
     staticArray: 'static-array',
     parameterName: 'data',
-    // parse rules
+    // tags parse rules
     textSaveTags: ['pre', 'code'],
     voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
         'param', 'source', 'track', 'wbr']

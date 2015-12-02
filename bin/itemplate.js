@@ -95,6 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _options = {
 	    BREAK_LINE: /(\r\n|\n|\r)/gm,
+	    // prepare options
 	    template: {
 	        evaluate: /<%([\s\S]+?)%>/g,
 	        interpolate: /<%=([\s\S]+?)%>/g,
@@ -110,18 +111,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        open: '{%',
 	        close: '%}'
 	    },
+	    // build options
 	    emptyString: true,
-	    MAP: {
-	        '&': '&amp;',
-	        '<': '&lt;',
-	        '>': '&gt;',
-	        '"': '&quot;',
-	        '\'': '&#39;'
-	    },
 	    staticKey: 'static-key',
 	    staticArray: 'static-array',
 	    parameterName: 'data',
-	    // parse rules
+	    // tags parse rules
 	    textSaveTags: ['pre', 'code'],
 	    voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
 	        'param', 'source', 'track', 'wbr']
@@ -135,10 +130,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _options = __webpack_require__(1);
 
-	function escapeHTML(s) {
-	    return s.replace(_options.escape, function (c) {
-	        return _options.MAP[c];
-	    });
+	function replacer(match, p1) {
+	    return _options.accessory.open + p1 + _options.accessory.close;
 	}
 
 	var methods = {
@@ -148,14 +141,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	    },
 	    interpolate: function (string) {
-	        return string.replace(_options.template.interpolate, function (match, p1) {
-	            return _options.accessory.open + p1 + _options.accessory.close;
-	        });
+	        return string.replace(_options.template.interpolate, replacer);
 	    },
 	    escape: function (string) {
-	        return string.replace(_options.template.escape, function (match, p1) {
-	            return _options.accessory.open + escapeHTML(p1) + _options.accessory.close;
-	        });
+	        return string.replace(_options.template.escape, replacer);
 	    }
 	};
 
@@ -600,7 +589,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var wrapper; // external wrapper functionality
 	var helpers; // keys for helpers
 
-	var empty = '', quote = '\'', comma = ', \''; // auxiliary
+	var empty = '', quote = '"', comma = ', "'; // auxiliary
 
 	function makeKey() {
 	    var text = new Array(12), possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz';
@@ -610,7 +599,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return text.join(empty);
 	}
 
-	function decodeAccessory(string) {
+	function decodeAccessory(string, force) {
 	    var regex = new RegExp(_options.accessory.open + '|' + _options.accessory.close, 'g');
 	    var code;
 	    var isStatic = true, openStub, closeStub;
@@ -622,12 +611,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (i % 2) {
 	            isStatic = false;
 	            piece = piece.trim();
-	            if (_options.emptyString) { // undefined as empty string
+	            if (_options.emptyString && !force) { // undefined as empty string
 	                if (piece.indexOf(' ') !== -1) {
 	                    openStub = '(';
 	                    closeStub = ')';
 	                }
-	                return ' + ' + openStub + piece + closeStub + '||\'\' + ';
+	                return ' + ' + openStub + piece + closeStub + '||"" + ';
 	            } else
 	                return ' + ' + piece + ' + ';
 	        } else {
@@ -641,20 +630,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return {value: code, isStatic: isStatic};
 	}
 
-	function formatText(tag, text) {
-	    return text
-	        .replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' '))
-	        .replace(/&#(\d+);/g, function (match, dec) {
-	            return String.fromCharCode(dec);
-	        })
-	        .trim();
+	function formatText(text) {
+	    return text.replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); }).trim();
 	}
 
 	function prepareKey(command, attributes) {
 	    var result = empty;
 	    if (command === Command.elementOpen || command === Command.elementVoid) {
 	        if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
-	            result = comma + (attributes[_options.staticKey] || makeKey()) + '\', ';
+	            result = comma + (attributes[_options.staticKey] || makeKey()) + '", ';
 	            delete attributes[_options.staticKey];
 	        } else {
 	            result = ', null, ';
@@ -681,9 +665,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (arrayStaticKey)
 	                    staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + attr + quote);
 	                else
-	                    result += comma + key + '\', \'' + attr + quote;
+	                    result += comma + key + '", "' + attr + quote;
 	            } else {
-	                result += comma + key + '\', ' + decode.value;
+	                result += comma + key + '", ' + decode.value;
 	            }
 	        }
 	    }
@@ -693,7 +677,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function decodeAttrs(obj) {
 	    var result = ['{'];
 	    for (var key in obj)
-	        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key]).value);
+	        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key], true).value);
 	    result.push('}');
 
 	    return result.join(empty);
@@ -705,27 +689,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function writeText(text) {
-	    text = formatText(state.tag, text);
+	    text = formatText(text);
 	    if (text.length > 0) {
 	        var decode = decodeAccessory(text);
-	        text = decode.isStatic ? (quote + text + quote) : decode.value;
-	        stack.push(Command.text + text + Command.close);
+	        stack.push(Command.text + decode.value + Command.close);
 	    }
-	}
-
-	function writeCode(text) {
-	    stack.push(formatText(state.tag, text));
-	}
-
-	function writeComment(text) {
-	    stack.push('\n// ' + text.replace(_options.BREAK_LINE, ' ') + '\n');
 	}
 
 	function writeAndCloseOpenState(isClosed) {
 	    var isShouldClose = true;
 	    if (state.tag) {
 	        if (helpers.indexOf(state.tag) !== -1) { // helper case
-	            stack.push('helpers[\'' + state.tag + '\'](' + decodeAttrs(state.attributes) + ');');
+	            stack.push('helpers["' + state.tag + '"](' + decodeAttrs(state.attributes) + ');');
 	            isShouldClose = false;
 	        } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
 	            writeCommand(Command.elementVoid, state.tag, state.attributes);
@@ -781,14 +756,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        case Mode.Text: // write text
 	            tag = state.tag;
 	            writeAndCloseOpenState();
-	            if (tag === _options.evaluate.name) {
-	                writeCode(command.data);
+	            if (tag === _options.evaluate.name) { // write code
+	                stack.push(formatText(command.data));
 	            } else {
 	                writeText(command.data);
 	            }
 	            break;
 	        case Mode.Comment: // write comments immediately
-	            writeComment(command.data);
+	            stack.push('\n// ' + command.data.replace(_options.BREAK_LINE, ' ') + '\n');
 	            break;
 	    }
 	};
@@ -806,9 +781,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _options = __webpack_require__(1);
 
 	var Command = { // incremental DOM commands
-	    elementOpen: 'o(\'',
-	    elementVoid: 'v(\'',
-	    elementClose: 'c(\'',
+	    elementOpen: 'o("',
+	    elementVoid: 'v("',
+	    elementClose: 'c("',
 	    text: 't(',
 	    close: ');'
 	};

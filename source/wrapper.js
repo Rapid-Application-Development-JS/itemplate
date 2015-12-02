@@ -1,9 +1,9 @@
 var _options = require('./options');
 
 var Command = { // incremental DOM commands
-    elementOpen: 'o(\'',
-    elementVoid: 'v(\'',
-    elementClose: 'c(\'',
+    elementOpen: 'o("',
+    elementVoid: 'v("',
+    elementClose: 'c("',
     text: 't(',
     close: ');'
 };

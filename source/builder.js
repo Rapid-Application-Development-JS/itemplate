@@ -9,7 +9,7 @@ var staticArraysHolder = {}; // holder for static arrays
 var wrapper; // external wrapper functionality
 var helpers; // keys for helpers
 
-var empty = '', quote = '\'', comma = ', \''; // auxiliary
+var empty = '', quote = '"', comma = ', "'; // auxiliary
 
 function makeKey() {
     var text = new Array(12), possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz';
@@ -36,7 +36,7 @@ function decodeAccessory(string, force) {
                     openStub = '(';
                     closeStub = ')';
                 }
-                return ' + ' + openStub + piece + closeStub + '||\'\' + ';
+                return ' + ' + openStub + piece + closeStub + '||"" + ';
             } else
                 return ' + ' + piece + ' + ';
         } else {
@@ -50,20 +50,15 @@ function decodeAccessory(string, force) {
     return {value: code, isStatic: isStatic};
 }
 
-function formatText(tag, text) {
-    return text
-        .replace(_options.BREAK_LINE, ((_options.textSaveTags.indexOf(tag) !== -1) ? '\n' : ' '))
-        .replace(/&#(\d+);/g, function (match, dec) {
-            return String.fromCharCode(dec);
-        })
-        .trim();
+function formatText(text) {
+    return text.replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); }).trim();
 }
 
 function prepareKey(command, attributes) {
     var result = empty;
     if (command === Command.elementOpen || command === Command.elementVoid) {
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
-            result = comma + (attributes[_options.staticKey] || makeKey()) + '\', ';
+            result = comma + (attributes[_options.staticKey] || makeKey()) + '", ';
             delete attributes[_options.staticKey];
         } else {
             result = ', null, ';
@@ -90,9 +85,9 @@ function prepareAttr(command, attributes) {
                 if (arrayStaticKey)
                     staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + attr + quote);
                 else
-                    result += comma + key + '\', \'' + attr + quote;
+                    result += comma + key + '", "' + attr + quote;
             } else {
-                result += comma + key + '\', ' + decode.value;
+                result += comma + key + '", ' + decode.value;
             }
         }
     }
@@ -114,27 +109,18 @@ function writeCommand(command, tag, attributes) {
 }
 
 function writeText(text) {
-    text = formatText(state.tag, text);
+    text = formatText(text);
     if (text.length > 0) {
         var decode = decodeAccessory(text);
-        text = decode.isStatic ? (quote + text + quote) : decode.value;
-        stack.push(Command.text + text + Command.close);
+        stack.push(Command.text + decode.value + Command.close);
     }
-}
-
-function writeCode(text) {
-    stack.push(formatText(state.tag, text));
-}
-
-function writeComment(text) {
-    stack.push('\n// ' + text.replace(_options.BREAK_LINE, ' ') + '\n');
 }
 
 function writeAndCloseOpenState(isClosed) {
     var isShouldClose = true;
     if (state.tag) {
         if (helpers.indexOf(state.tag) !== -1) { // helper case
-            stack.push('helpers[\'' + state.tag + '\'](' + decodeAttrs(state.attributes) + ');');
+            stack.push('helpers["' + state.tag + '"](' + decodeAttrs(state.attributes) + ');');
             isShouldClose = false;
         } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
             writeCommand(Command.elementVoid, state.tag, state.attributes);
@@ -190,14 +176,14 @@ Builder.prototype.write = function (command) {
         case Mode.Text: // write text
             tag = state.tag;
             writeAndCloseOpenState();
-            if (tag === _options.evaluate.name) {
-                writeCode(command.data);
+            if (tag === _options.evaluate.name) { // write code
+                stack.push(formatText(command.data));
             } else {
                 writeText(command.data);
             }
             break;
         case Mode.Comment: // write comments immediately
-            writeComment(command.data);
+            stack.push('\n// ' + command.data.replace(_options.BREAK_LINE, ' ') + '\n');
             break;
     }
 };
