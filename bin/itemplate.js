@@ -94,7 +94,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports) {
 
 	var _options = {
-	    BREAK_LINE: /(\r\n|\n|\r)/gm,
+	    BREAK_LINE: /(\r\n|\n|\r)\s{0,}/gm,
 	    // prepare options
 	    template: {
 	        evaluate: /<%([\s\S]+?)%>/g,
