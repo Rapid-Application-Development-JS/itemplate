@@ -19,7 +19,7 @@ function makeKey() {
     return text.join(empty);
 }
 
-function decodeAccessory(string) {
+function decodeAccessory(string, force) {
     var regex = new RegExp(_options.accessory.open + '|' + _options.accessory.close, 'g');
     var code;
     var isStatic = true, openStub, closeStub;
@@ -31,7 +31,7 @@ function decodeAccessory(string) {
         if (i % 2) {
             isStatic = false;
             piece = piece.trim();
-            if (_options.emptyString) { // undefined as empty string
+            if (_options.emptyString && !force) { // undefined as empty string
                 if (piece.indexOf(' ') !== -1) {
                     openStub = '(';
                     closeStub = ')';
@@ -102,7 +102,7 @@ function prepareAttr(command, attributes) {
 function decodeAttrs(obj) {
     var result = ['{'];
     for (var key in obj)
-        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key]).value);
+        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key], true).value);
     result.push('}');
 
     return result.join(empty);
