@@ -11,8 +11,25 @@ var Command = { // incremental DOM commands
 function createWrapper() {
     var _library, _helpers, _fnName;
 
-    function wrapper(stack, holder) {
-        var resultFn, fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
+    function reversTemplatePrepare(string) { // todo make revers template preparing
+        return JSON.stringify(string)
+    }
+
+    function wrappFn(body, initialData) {
+        if (_options.debug) {
+            body = 'try {\n' + body + '\n} catch (err) {\n' +
+                //'/*============template===============\n' + initialData + '\n===================================*/\n' +
+                    //'console.log("error: ",err.stack, err.message, err.name);' +
+                'throw new Error(err.message+"\\n"+' + reversTemplatePrepare(initialData) + ');' +
+                '\n}';
+        }
+        return body;
+    }
+
+    function wrapper(stack, holder, initialData) {
+        var resultFn;
+        var glue = _options.debug ? '\n' : '';
+        var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
             'elementVoid=lib.elementVoid;';
 
         for (var key in holder) { // collect static arrays
@@ -21,17 +38,17 @@ function createWrapper() {
         }
 
         if (_library) {
-            fn += 'return function(' + _options.parameterName + '){' + stack.join('') + '};';
+            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue), initialData) + '};';
             if (_fnName) // return function with closure as string
                 resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
             else // return function with closure
                 resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
-        } else {
+        } else { // todo is it really need ?
             if (_fnName) // plain function as string
                 resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-                    + fn + stack.join('') + '}';
+                    + wrappFn(fn + stack.join(glue), initialData) + '}';
             else // plain function
-                resultFn = new Function(_options.parameterName, 'lib', 'helpers', fn + stack.join(''));
+                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue), initialData));
         }
 
         return resultFn;

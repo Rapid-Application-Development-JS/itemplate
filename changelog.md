@@ -9,6 +9,7 @@
 * Correctly compile newline, apostrophes and quotes
 * Allow "&lt;" and "&gt;" after evaluation
 * Tolerate "<" and ">" in evalutation fragments
+* debug mode
 
 todo extended mode for attributes
 /**

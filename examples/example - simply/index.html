@@ -33,7 +33,7 @@
         </li>
         <%  }); %>
     </ul>
-
+    <%console.log(a);%>
     <% if (showFootnote){ %>
     <p style="font-size: 12px ;">
         <em>* Olympic gold medalist</em>
@@ -66,7 +66,6 @@
     };
 
     var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
-    console.log(render.toString());
     patch(document.querySelector('#container'), render, templateData);
 </script>
 </body>

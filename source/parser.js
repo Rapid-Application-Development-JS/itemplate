@@ -6,7 +6,7 @@ function Parser(builder) {
 }
 
 //**Public**//
-Parser.prototype.reset = function Parser$reset() {
+Parser.prototype.reset = function () {
     this._state = {
         mode: Mode.Text,
         pos: 0,
@@ -22,7 +22,7 @@ Parser.prototype.reset = function Parser$reset() {
     this._builder.reset();
 };
 
-Parser.prototype.parseChunk = function Parser$parseChunk(chunk) {
+Parser.prototype.parseChunk = function (chunk) {
     this._state.needData = false;
     this._state.data = (this._state.data !== null) ? this._state.data.substr(this.pos) + chunk : chunk;
     while (this._state.pos < this._state.data.length && !this._state.needData) {
@@ -30,21 +30,21 @@ Parser.prototype.parseChunk = function Parser$parseChunk(chunk) {
     }
 };
 
-Parser.prototype.parseComplete = function Parser$parseComplete(data) {
+Parser.prototype.parseComplete = function (data) {
     this.reset();
     this.parseChunk(data);
-    return this.done();
+    return this.done(data);
 };
 
-Parser.prototype.done = function Parser$done() {
+Parser.prototype.done = function (initialData) {
     this._state.done = true;
     this._parse(this._state);
     this._flushWrite();
-    return this._builder.done();
+    return this._builder.done(initialData);
 };
 
 //**Private**//
-Parser.prototype._parse = function Parser$_parse() {
+Parser.prototype._parse = function () {
     switch (this._state.mode) {
         case Mode.Text:
             return this._parseText(this._state);
@@ -61,14 +61,14 @@ Parser.prototype._parse = function Parser$_parse() {
     }
 };
 
-Parser.prototype._writePending = function Parser$_writePending(node) {
+Parser.prototype._writePending = function (node) {
     if (!this._state.pendingWrite) {
         this._state.pendingWrite = [];
     }
     this._state.pendingWrite.push(node);
 };
 
-Parser.prototype._flushWrite = function Parser$_flushWrite() {
+Parser.prototype._flushWrite = function () {
     if (this._state.pendingWrite) {
         for (var i = 0, len = this._state.pendingWrite.length; i < len; i++) {
             var node = this._state.pendingWrite[i];
@@ -78,13 +78,13 @@ Parser.prototype._flushWrite = function Parser$_flushWrite() {
     }
 };
 
-Parser.prototype._write = function Parser$_write(node) {
+Parser.prototype._write = function (node) {
     this._flushWrite();
     this._builder.write(node);
 };
 
 Parser._re_parseText_scriptClose = /<\s*\/\s*script/ig;
-Parser.prototype._parseText = function Parser$_parseText() {
+Parser.prototype._parseText = function () {
     var state = this._state;
     var foundPos;
     if (state.isScript) {
@@ -117,7 +117,7 @@ Parser.prototype._parseText = function Parser$_parseText() {
             text = state.data.substring(state.pos, foundPos);
         }
         if (text !== '') {
-            this._write({type: Mode.Text, data: text});
+            this._write({type: Mode.Text, data: text}); // todo node creation
         }
         state.pos = foundPos + 1;
         state.mode = Mode.Tag;
@@ -125,7 +125,7 @@ Parser.prototype._parseText = function Parser$_parseText() {
 };
 
 Parser.re_parseTag = /\s*(\/?)\s*([^\s>\/]+)(\s*)\??(>?)/g;
-Parser.prototype._parseTag = function Parser$_parseTag() {
+Parser.prototype._parseTag = function () {
     var state = this._state;
     Parser.re_parseTag.lastIndex = state.pos;
     var match = Parser.re_parseTag.exec(state.data);
@@ -160,19 +160,19 @@ Parser.prototype._parseTag = function Parser$_parseTag() {
             raw = match[0];
         }
         state.pos += match[0].length;
-        var tag = {type: Mode.Tag, name: match[1] + match[2], raw: raw};
+        var tag = {type: Mode.Tag, name: match[1] + match[2], raw: raw, position: Parser.re_parseTag.lastIndex };
         if (state.mode === Mode.Attr) {
             state.lastTag = tag;
         }
-        if (tag.name.toLowerCase() === 'script') {
+        if (tag.name.toLowerCase() === 'script') { // todo remove or replace functionality from builder(may be better)
             state.isScript = true;
         } else if (tag.name.toLowerCase() === '/script') {
             state.isScript = false;
         }
         if (state.mode === Mode.Attr) {
-            this._writePending(tag);
+            this._writePending(tag); // todo node creation
         } else {
-            this._write(tag);
+            this._write(tag); // todo node creation
         }
     } else {
         state.needData = true;
@@ -180,7 +180,7 @@ Parser.prototype._parseTag = function Parser$_parseTag() {
 };
 
 Parser.re_parseAttr_findName = /\s*([^=<>\s'"\/]+)\s*/g;
-Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
+Parser.prototype._parseAttr_findName = function () {
     // todo: parse {{ checked ? 'checked' : '' }} in input
     Parser.re_parseAttr_findName.lastIndex = this._state.pos;
     var match = Parser.re_parseAttr_findName.exec(this._state.data);
@@ -197,7 +197,7 @@ Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
 };
 Parser.re_parseAttr_findValue = /\s*=\s*(?:'([^']*)'|"([^"]*)"|([^'"\s\/>]+))\s*/g;
 Parser.re_parseAttr_findValue_last = /\s*=\s*['"]?(.*)$/g;
-Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue() {
+Parser.prototype._parseAttr_findValue = function () {
     var state = this._state;
     Parser.re_parseAttr_findValue.lastIndex = state.pos;
     var match = Parser.re_parseAttr_findValue.exec(state.data);
@@ -225,7 +225,7 @@ Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue() {
 };
 Parser.re_parseAttr_splitValue = /\s*=\s*['"]?/g;
 Parser.re_parseAttr_selfClose = /(\s*\/\s*)(>?)/g;
-Parser.prototype._parseAttr = function Parser$_parseAttr() {
+Parser.prototype._parseAttr = function () {
     var state = this._state;
     var name_data = this._parseAttr_findName(state);
     if (!name_data || name_data.name === '?') {
@@ -237,7 +237,7 @@ Parser.prototype._parseAttr = function Parser$_parseAttr() {
                 return;
             }
             state.lastTag.raw += matchTrailingSlash[1];
-            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null});
+            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null}); // todo node creation
             state.pos += matchTrailingSlash[1].length;
         }
         var foundPos = state.data.indexOf('>', state.pos);
@@ -290,11 +290,11 @@ Parser.prototype._parseAttr = function Parser$_parseAttr() {
     }
     state.lastTag.raw += name_data.match + value_data.match;
 
-    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value});
+    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value}); // todo node creation
 };
 
 Parser.re_parseCData_findEnding = /\]{1,2}$/;
-Parser.prototype._parseCData = function Parser$_parseCData() {
+Parser.prototype._parseCData = function () { // todo remove
     var state = this._state;
     var foundPos = state.data.indexOf(']]>', state.pos);
     if (foundPos < 0 && state.done) {
@@ -322,13 +322,13 @@ Parser.prototype._parseCData = function Parser$_parseCData() {
         } else {
             text = state.data.substring(state.pos, foundPos);
         }
-        this._write({type: Mode.CData, data: text});
+        this._write({type: Mode.CData, data: text}); //todo node creation
         state.mode = Mode.Text;
         state.pos = foundPos + 3;
     }
 };
 
-Parser.prototype._parseDoctype = function Parser$_parseDoctype() {
+Parser.prototype._parseDoctype = function () { // todo remove
     var state = this._state;
     var foundPos = state.data.indexOf('>', state.pos);
     if (foundPos < 0 && state.done) {
@@ -351,14 +351,14 @@ Parser.prototype._parseDoctype = function Parser$_parseDoctype() {
         } else {
             text = state.data.substring(state.pos, foundPos);
         }
-        this._write({type: Mode.Doctype, data: text});
+        this._write({type: Mode.Doctype, data: text}); // todo node creation
         state.mode = Mode.Text;
         state.pos = foundPos + 1;
     }
 };
 
 Parser.re_parseComment_findEnding = /\-{1,2}$/;
-Parser.prototype._parseComment = function Parser$_parseComment() {
+Parser.prototype._parseComment = function () {
     var state = this._state;
     var foundPos = state.data.indexOf('-->', state.pos);
     if (foundPos < 0 && state.done) {
@@ -387,7 +387,7 @@ Parser.prototype._parseComment = function Parser$_parseComment() {
             text = state.data.substring(state.pos, foundPos);
         }
 
-        this._write({type: Mode.Comment, data: text});
+        this._write({type: Mode.Comment, data: text}); // todo node creation
         state.mode = Mode.Text;
         state.pos = foundPos + 3;
     }

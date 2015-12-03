@@ -119,7 +119,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // tags parse rules
 	    textSaveTags: ['pre', 'code'],
 	    voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
-	        'param', 'source', 'track', 'wbr']
+	        'param', 'source', 'track', 'wbr'],
+	    debug: true
 	};
 
 	module.exports = _options;
@@ -170,7 +171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	//**Public**//
-	Parser.prototype.reset = function Parser$reset() {
+	Parser.prototype.reset = function () {
 	    this._state = {
 	        mode: Mode.Text,
 	        pos: 0,
@@ -186,7 +187,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this._builder.reset();
 	};
 
-	Parser.prototype.parseChunk = function Parser$parseChunk(chunk) {
+	Parser.prototype.parseChunk = function (chunk) {
 	    this._state.needData = false;
 	    this._state.data = (this._state.data !== null) ? this._state.data.substr(this.pos) + chunk : chunk;
 	    while (this._state.pos < this._state.data.length && !this._state.needData) {
@@ -194,21 +195,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
-	Parser.prototype.parseComplete = function Parser$parseComplete(data) {
+	Parser.prototype.parseComplete = function (data) {
 	    this.reset();
 	    this.parseChunk(data);
-	    return this.done();
+	    return this.done(data);
 	};
 
-	Parser.prototype.done = function Parser$done() {
+	Parser.prototype.done = function (initialData) {
 	    this._state.done = true;
 	    this._parse(this._state);
 	    this._flushWrite();
-	    return this._builder.done();
+	    return this._builder.done(initialData);
 	};
 
 	//**Private**//
-	Parser.prototype._parse = function Parser$_parse() {
+	Parser.prototype._parse = function () {
 	    switch (this._state.mode) {
 	        case Mode.Text:
 	            return this._parseText(this._state);
@@ -225,14 +226,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
-	Parser.prototype._writePending = function Parser$_writePending(node) {
+	Parser.prototype._writePending = function (node) {
 	    if (!this._state.pendingWrite) {
 	        this._state.pendingWrite = [];
 	    }
 	    this._state.pendingWrite.push(node);
 	};
 
-	Parser.prototype._flushWrite = function Parser$_flushWrite() {
+	Parser.prototype._flushWrite = function () {
 	    if (this._state.pendingWrite) {
 	        for (var i = 0, len = this._state.pendingWrite.length; i < len; i++) {
 	            var node = this._state.pendingWrite[i];
@@ -242,13 +243,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
-	Parser.prototype._write = function Parser$_write(node) {
+	Parser.prototype._write = function (node) {
 	    this._flushWrite();
 	    this._builder.write(node);
 	};
 
 	Parser._re_parseText_scriptClose = /<\s*\/\s*script/ig;
-	Parser.prototype._parseText = function Parser$_parseText() {
+	Parser.prototype._parseText = function () {
 	    var state = this._state;
 	    var foundPos;
 	    if (state.isScript) {
@@ -281,7 +282,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            text = state.data.substring(state.pos, foundPos);
 	        }
 	        if (text !== '') {
-	            this._write({type: Mode.Text, data: text});
+	            this._write({type: Mode.Text, data: text}); // todo node creation
 	        }
 	        state.pos = foundPos + 1;
 	        state.mode = Mode.Tag;
@@ -289,7 +290,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Parser.re_parseTag = /\s*(\/?)\s*([^\s>\/]+)(\s*)\??(>?)/g;
-	Parser.prototype._parseTag = function Parser$_parseTag() {
+	Parser.prototype._parseTag = function () {
 	    var state = this._state;
 	    Parser.re_parseTag.lastIndex = state.pos;
 	    var match = Parser.re_parseTag.exec(state.data);
@@ -324,19 +325,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	            raw = match[0];
 	        }
 	        state.pos += match[0].length;
-	        var tag = {type: Mode.Tag, name: match[1] + match[2], raw: raw};
+	        var tag = {type: Mode.Tag, name: match[1] + match[2], raw: raw, position: Parser.re_parseTag.lastIndex };
 	        if (state.mode === Mode.Attr) {
 	            state.lastTag = tag;
 	        }
-	        if (tag.name.toLowerCase() === 'script') {
+	        if (tag.name.toLowerCase() === 'script') { // todo remove or replace functionality from builder(may be better)
 	            state.isScript = true;
 	        } else if (tag.name.toLowerCase() === '/script') {
 	            state.isScript = false;
 	        }
 	        if (state.mode === Mode.Attr) {
-	            this._writePending(tag);
+	            this._writePending(tag); // todo node creation
 	        } else {
-	            this._write(tag);
+	            this._write(tag); // todo node creation
 	        }
 	    } else {
 	        state.needData = true;
@@ -344,7 +345,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	Parser.re_parseAttr_findName = /\s*([^=<>\s'"\/]+)\s*/g;
-	Parser.prototype._parseAttr_findName = function Parser$_parseAttr_findName() {
+	Parser.prototype._parseAttr_findName = function () {
 	    // todo: parse {{ checked ? 'checked' : '' }} in input
 	    Parser.re_parseAttr_findName.lastIndex = this._state.pos;
 	    var match = Parser.re_parseAttr_findName.exec(this._state.data);
@@ -361,7 +362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	Parser.re_parseAttr_findValue = /\s*=\s*(?:'([^']*)'|"([^"]*)"|([^'"\s\/>]+))\s*/g;
 	Parser.re_parseAttr_findValue_last = /\s*=\s*['"]?(.*)$/g;
-	Parser.prototype._parseAttr_findValue = function Parser$_parseAttr_findValue() {
+	Parser.prototype._parseAttr_findValue = function () {
 	    var state = this._state;
 	    Parser.re_parseAttr_findValue.lastIndex = state.pos;
 	    var match = Parser.re_parseAttr_findValue.exec(state.data);
@@ -389,7 +390,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	Parser.re_parseAttr_splitValue = /\s*=\s*['"]?/g;
 	Parser.re_parseAttr_selfClose = /(\s*\/\s*)(>?)/g;
-	Parser.prototype._parseAttr = function Parser$_parseAttr() {
+	Parser.prototype._parseAttr = function () {
 	    var state = this._state;
 	    var name_data = this._parseAttr_findName(state);
 	    if (!name_data || name_data.name === '?') {
@@ -401,7 +402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return;
 	            }
 	            state.lastTag.raw += matchTrailingSlash[1];
-	            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null});
+	            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null}); // todo node creation
 	            state.pos += matchTrailingSlash[1].length;
 	        }
 	        var foundPos = state.data.indexOf('>', state.pos);
@@ -454,11 +455,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    state.lastTag.raw += name_data.match + value_data.match;
 
-	    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value});
+	    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value}); // todo node creation
 	};
 
 	Parser.re_parseCData_findEnding = /\]{1,2}$/;
-	Parser.prototype._parseCData = function Parser$_parseCData() {
+	Parser.prototype._parseCData = function () { // todo remove
 	    var state = this._state;
 	    var foundPos = state.data.indexOf(']]>', state.pos);
 	    if (foundPos < 0 && state.done) {
@@ -486,13 +487,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	            text = state.data.substring(state.pos, foundPos);
 	        }
-	        this._write({type: Mode.CData, data: text});
+	        this._write({type: Mode.CData, data: text}); //todo node creation
 	        state.mode = Mode.Text;
 	        state.pos = foundPos + 3;
 	    }
 	};
 
-	Parser.prototype._parseDoctype = function Parser$_parseDoctype() {
+	Parser.prototype._parseDoctype = function () { // todo remove
 	    var state = this._state;
 	    var foundPos = state.data.indexOf('>', state.pos);
 	    if (foundPos < 0 && state.done) {
@@ -515,14 +516,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	            text = state.data.substring(state.pos, foundPos);
 	        }
-	        this._write({type: Mode.Doctype, data: text});
+	        this._write({type: Mode.Doctype, data: text}); // todo node creation
 	        state.mode = Mode.Text;
 	        state.pos = foundPos + 1;
 	    }
 	};
 
 	Parser.re_parseComment_findEnding = /\-{1,2}$/;
-	Parser.prototype._parseComment = function Parser$_parseComment() {
+	Parser.prototype._parseComment = function () {
 	    var state = this._state;
 	    var foundPos = state.data.indexOf('-->', state.pos);
 	    if (foundPos < 0 && state.done) {
@@ -551,7 +552,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            text = state.data.substring(state.pos, foundPos);
 	        }
 
-	        this._write({type: Mode.Comment, data: text});
+	        this._write({type: Mode.Comment, data: text}); // todo node creation
 	        state.mode = Mode.Text;
 	        state.pos = foundPos + 3;
 	    }
@@ -741,6 +742,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Builder.prototype.write = function (command) {
 	    var tag;
+
+	    // todo remove
+	    if (command.type === Mode.Tag)
+	        stack.push('/*<'+command.raw+ '>::' + command.position +'*/\n');
+
 	    switch (command.type) {
 	        case Mode.Tag:
 	            tag = command.name.replace('/', empty);
@@ -771,8 +777,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
-	Builder.prototype.done = function () {
-	    return wrapper(stack, staticArraysHolder);
+	Builder.prototype.done = function (initialData) {
+	    return wrapper(stack, staticArraysHolder, initialData);
 	};
 
 	module.exports = Builder;
@@ -794,8 +800,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	function createWrapper() {
 	    var _library, _helpers, _fnName;
 
-	    function wrapper(stack, holder) {
-	        var resultFn, fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
+	    function reversTemplatePrepare(string) {
+	        return JSON.stringify(string)
+	    }
+
+	    function wrappFn(body, initialData) {
+	        if (_options.debug) {
+	            body = 'try {\n' + body + '\n} catch (err) {\n' +
+	                '/*============template===============\n' + initialData + '\n===================================*/\n' +
+	                    //'console.log("error: ",err.stack, err.message, err.name);' +
+	                'throw new Error(err.message+"\\n"+' + reversTemplatePrepare(initialData) + ');' +
+	                '\n}';
+	        }
+	        return body;
+	    }
+
+	    function wrapper(stack, holder, initialData) {
+	        var resultFn;
+	        var glue = _options.debug ? '\n' : '';
+	        var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
 	            'elementVoid=lib.elementVoid;';
 
 	        for (var key in holder) { // collect static arrays
@@ -804,17 +827,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        if (_library) {
-	            fn += 'return function(' + _options.parameterName + '){' + stack.join('') + '};';
+	            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue), initialData) + '};';
 	            if (_fnName) // return function with closure as string
 	                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
 	            else // return function with closure
 	                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
-	        } else {
+	        } else { // todo is it really need
 	            if (_fnName) // plain function as string
 	                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-	                    + fn + stack.join('') + '}';
+	                    + wrappFn(fn + stack.join(glue), initialData) + '}';
 	            else // plain function
-	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', fn + stack.join(''));
+	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue), initialData));
 	        }
 
 	        return resultFn;
