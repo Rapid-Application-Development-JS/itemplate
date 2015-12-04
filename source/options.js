@@ -25,7 +25,7 @@ var _options = {
     textSaveTags: ['pre', 'code'],
     voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
         'param', 'source', 'track', 'wbr'],
-    debug: true
+    debug: false
 };
 
 module.exports = _options;

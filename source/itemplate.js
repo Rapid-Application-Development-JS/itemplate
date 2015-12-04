@@ -13,7 +13,7 @@ var itemplate = {
     compile: function (string, library, fnName) {
         builder.reset();
         builder.set(Object.keys(helpers));
-        wrapper.set(library, helpers, fnName);
+        wrapper.set(library, helpers, fnName, string);
         return parser.parseComplete(prepare(string));
     },
     options: function (options) {

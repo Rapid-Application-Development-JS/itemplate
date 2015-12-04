@@ -1,5 +1,6 @@
 var _options = require('./options');
 
+// todo create different commands for debug & relize mode
 var Command = { // incremental DOM commands
     elementOpen: 'elementOpen("',
     elementVoid: 'elementVoid("',
@@ -9,30 +10,24 @@ var Command = { // incremental DOM commands
 };
 
 function createWrapper() {
-    var _library, _helpers, _fnName;
+    var _library, _helpers, _fnName, _template;
 
-    function reversTemplatePrepare(string) { // todo make revers template preparing
-        return JSON.stringify(string)
+    var error = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
+        'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
+        'TE.prototype=new CE();TE.prototype.constructor=TE;';
+
+    function wrappFn(body, initialData) { // todo remove initialData
+        return (_options.debug) ? ('try {' + body + '} catch (err) {' + error + 'throw new TE('
+        + JSON.stringify(_template) + ', err.name, err);}') : body;
     }
 
-    function wrappFn(body, initialData) {
-        if (_options.debug) {
-            body = 'try {\n' + body + '\n} catch (err) {\n' +
-                //'/*============template===============\n' + initialData + '\n===================================*/\n' +
-                    //'console.log("error: ",err.stack, err.message, err.name);' +
-                'throw new Error(err.message+"\\n"+' + reversTemplatePrepare(initialData) + ');' +
-                '\n}';
-        }
-        return body;
-    }
-
-    function wrapper(stack, holder, initialData) {
+    function wrapper(stack, holder, initialData) { // todo remove initialData
         var resultFn;
-        var glue = _options.debug ? '\n' : '';
+        var glue = '';
         var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
             'elementVoid=lib.elementVoid;';
 
-        for (var key in holder) { // collect static arrays
+        for (var key in holder) { // collect static arrays for function
             if (holder.hasOwnProperty(key))
                 fn += 'var ' + key + '=[' + holder[key] + '];';
         }
@@ -54,10 +49,11 @@ function createWrapper() {
         return resultFn;
     }
 
-    wrapper.set = function (library, helpers, fnName) {
+    wrapper.set = function (library, helpers, fnName, template) {
         _library = library;
         _helpers = helpers;
         _fnName = fnName;
+        _template = template;
     };
 
     return wrapper;

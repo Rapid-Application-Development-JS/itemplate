@@ -65,6 +65,7 @@
         ]
     };
 
+    itemplate.options({debug: true}); // enable debug mode
     var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
     patch(document.querySelector('#container'), render, templateData);
 </script>

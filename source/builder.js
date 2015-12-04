@@ -161,11 +161,6 @@ Builder.prototype.set = function (helpersKeys) {
 
 Builder.prototype.write = function (command) {
     var tag;
-
-    // todo remove
-    if (command.type === Mode.Tag)
-        stack.push('/*<'+command.raw+ '>::' + command.position +'*/\n');
-
     switch (command.type) {
         case Mode.Tag:
             tag = command.name.replace('/', empty);
@@ -190,8 +185,9 @@ Builder.prototype.write = function (command) {
                 writeText(command.data);
             }
             break;
-        case Mode.Comment: // write comments immediately
-            stack.push('\n// ' + command.data.replace(_options.BREAK_LINE, ' ') + '\n');
+        case Mode.Comment: // write comments only in debug mode
+            if (_options.debug)
+                stack.push('\n// ' + command.data.replace(_options.BREAK_LINE, ' ') + '\n');
             break;
     }
 };

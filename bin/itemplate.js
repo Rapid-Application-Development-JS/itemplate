@@ -69,7 +69,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    compile: function (string, library, fnName) {
 	        builder.reset();
 	        builder.set(Object.keys(helpers));
-	        wrapper.set(library, helpers, fnName);
+	        wrapper.set(library, helpers, fnName, string);
 	        return parser.parseComplete(prepare(string));
 	    },
 	    options: function (options) {
@@ -120,7 +120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    textSaveTags: ['pre', 'code'],
 	    voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
 	        'param', 'source', 'track', 'wbr'],
-	    debug: true
+	    debug: false
 	};
 
 	module.exports = _options;
@@ -742,11 +742,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Builder.prototype.write = function (command) {
 	    var tag;
-
-	    // todo remove
-	    if (command.type === Mode.Tag)
-	        stack.push('/*<'+command.raw+ '>::' + command.position +'*/\n');
-
 	    switch (command.type) {
 	        case Mode.Tag:
 	            tag = command.name.replace('/', empty);
@@ -771,8 +766,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                writeText(command.data);
 	            }
 	            break;
-	        case Mode.Comment: // write comments immediately
-	            stack.push('\n// ' + command.data.replace(_options.BREAK_LINE, ' ') + '\n');
+	        case Mode.Comment: // write comments only in debug mode
+	            if (_options.debug)
+	                stack.push('\n// ' + command.data.replace(_options.BREAK_LINE, ' ') + '\n');
 	            break;
 	    }
 	};
@@ -789,6 +785,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _options = __webpack_require__(1);
 
+	// todo create different commands for debug & relize mode
 	var Command = { // incremental DOM commands
 	    elementOpen: 'elementOpen("',
 	    elementVoid: 'elementVoid("',
@@ -798,30 +795,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	function createWrapper() {
-	    var _library, _helpers, _fnName;
+	    var _library, _helpers, _fnName, _template;
 
-	    function reversTemplatePrepare(string) {
-	        return JSON.stringify(string)
+	    var error = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
+	        'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
+	        'TE.prototype=new CE();TE.prototype.constructor=TE;';
+
+	    function wrappFn(body, initialData) { // todo remove initialData
+	        return (_options.debug) ? ('try {' + body + '} catch (err) {' + error + 'throw new TE('
+	        + JSON.stringify(_template) + ', err.name, err);}') : body;
 	    }
 
-	    function wrappFn(body, initialData) {
-	        if (_options.debug) {
-	            body = 'try {\n' + body + '\n} catch (err) {\n' +
-	                '/*============template===============\n' + initialData + '\n===================================*/\n' +
-	                    //'console.log("error: ",err.stack, err.message, err.name);' +
-	                'throw new Error(err.message+"\\n"+' + reversTemplatePrepare(initialData) + ');' +
-	                '\n}';
-	        }
-	        return body;
-	    }
-
-	    function wrapper(stack, holder, initialData) {
+	    function wrapper(stack, holder, initialData) { // todo remove initialData
 	        var resultFn;
-	        var glue = _options.debug ? '\n' : '';
+	        var glue = '';
 	        var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
 	            'elementVoid=lib.elementVoid;';
 
-	        for (var key in holder) { // collect static arrays
+	        for (var key in holder) { // collect static arrays for function
 	            if (holder.hasOwnProperty(key))
 	                fn += 'var ' + key + '=[' + holder[key] + '];';
 	        }
@@ -832,7 +823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
 	            else // return function with closure
 	                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
-	        } else { // todo is it really need
+	        } else { // todo is it really need ?
 	            if (_fnName) // plain function as string
 	                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
 	                    + wrappFn(fn + stack.join(glue), initialData) + '}';
@@ -843,10 +834,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return resultFn;
 	    }
 
-	    wrapper.set = function (library, helpers, fnName) {
+	    wrapper.set = function (library, helpers, fnName, template) {
 	        _library = library;
 	        _helpers = helpers;
 	        _fnName = fnName;
+	        _template = template;
 	    };
 
 	    return wrapper;
