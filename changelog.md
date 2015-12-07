@@ -9,3 +9,4 @@
 * Allow "&#10;", "&13;" etc. after evaluation
 * Tolerate "<" and ">" in evaluation fragments
 * debug mode
+* x-tag library support
