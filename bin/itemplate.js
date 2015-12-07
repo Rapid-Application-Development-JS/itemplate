@@ -663,7 +663,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        result = arrayStaticKey || null;
 	        for (var key in attributes) {
 	            attr = attributes[key];
-	            attr = (attr === null) ? key : attr;
+	            attr = (attr === null) ? key : ((attr === undefined) ? '' : attr);
 	            decode = decodeAccessory(attr);
 	            if (decode.isStatic) {
 	                if (arrayStaticKey)

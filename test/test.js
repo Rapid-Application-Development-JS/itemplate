@@ -103,6 +103,14 @@ describe("0.1: Template decoder checking", function () {
             done();
         });
     });
+
+    it("0.1.13: empty attribute value", function (done) {
+        compareStr('./test/data/test_13.html', './test/data/test_13.txt', function (testStr, resultStr) {
+            testStr.should.be.equal(resultStr);
+            done();
+        });
+    });
+
     //
     //it("0.1.2: plain html", function () {
     //    var html = fs.readFileSync('./test/data/test_10.html').toString();
