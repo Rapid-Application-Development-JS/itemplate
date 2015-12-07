@@ -1,6 +1,5 @@
 var _options = require('./options');
 
-// todo create different commands for debug & relize mode
 var Command = { // incremental DOM commands
     elementOpen: 'elementOpen("',
     elementVoid: 'elementVoid("',
@@ -16,12 +15,12 @@ function createWrapper() {
         'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
         'TE.prototype=new CE();TE.prototype.constructor=TE;';
 
-    function wrappFn(body, initialData) { // todo remove initialData
+    function wrappFn(body) {
         return (_options.debug) ? ('try {' + body + '} catch (err) {' + error + 'throw new TE('
         + JSON.stringify(_template) + ', err.name, err);}') : body;
     }
 
-    function wrapper(stack, holder, initialData) { // todo remove initialData
+    function wrapper(stack, holder) {
         var resultFn;
         var glue = '';
         var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
@@ -33,17 +32,17 @@ function createWrapper() {
         }
 
         if (_library) {
-            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue), initialData) + '};';
+            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue)) + '};';
             if (_fnName) // return function with closure as string
                 resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
             else // return function with closure
                 resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
-        } else { // todo is it really need ?
+        } else {
             if (_fnName) // plain function as string
                 resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-                    + wrappFn(fn + stack.join(glue), initialData) + '}';
+                    + wrappFn(fn + stack.join(glue)) + '}';
             else // plain function
-                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue), initialData));
+                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue)));
         }
 
         return resultFn;

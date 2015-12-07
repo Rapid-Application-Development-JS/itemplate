@@ -8,9 +8,9 @@ var _options = {
     },
     order: ['interpolate', 'escape', 'evaluate'],
     evaluate: {
-        name: 'evaluate',
-        open: '<evaluate>',
-        close: '</evaluate>'
+        name: 'script',
+        open: '<script>',
+        close: '</script>'
     },
     accessory: {
         open: '{%',

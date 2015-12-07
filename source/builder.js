@@ -192,8 +192,8 @@ Builder.prototype.write = function (command) {
     }
 };
 
-Builder.prototype.done = function (initialData) {
-    return wrapper(stack, staticArraysHolder, initialData);
+Builder.prototype.done = function () {
+    return wrapper(stack, staticArraysHolder);
 };
 
 module.exports = Builder;

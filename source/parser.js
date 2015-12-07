@@ -33,14 +33,14 @@ Parser.prototype.parseChunk = function (chunk) {
 Parser.prototype.parseComplete = function (data) {
     this.reset();
     this.parseChunk(data);
-    return this.done(data);
+    return this.done();
 };
 
-Parser.prototype.done = function (initialData) {
+Parser.prototype.done = function () {
     this._state.done = true;
     this._parse(this._state);
     this._flushWrite();
-    return this._builder.done(initialData);
+    return this._builder.done();
 };
 
 //**Private**//
@@ -117,7 +117,7 @@ Parser.prototype._parseText = function () {
             text = state.data.substring(state.pos, foundPos);
         }
         if (text !== '') {
-            this._write({type: Mode.Text, data: text}); // todo node creation
+            this._write({type: Mode.Text, data: text});
         }
         state.pos = foundPos + 1;
         state.mode = Mode.Tag;
@@ -164,15 +164,15 @@ Parser.prototype._parseTag = function () {
         if (state.mode === Mode.Attr) {
             state.lastTag = tag;
         }
-        if (tag.name.toLowerCase() === 'script') { // todo remove or replace functionality from builder(may be better)
+        if (tag.name.toLowerCase() === 'script') {
             state.isScript = true;
         } else if (tag.name.toLowerCase() === '/script') {
             state.isScript = false;
         }
         if (state.mode === Mode.Attr) {
-            this._writePending(tag); // todo node creation
+            this._writePending(tag);
         } else {
-            this._write(tag); // todo node creation
+            this._write(tag);
         }
     } else {
         state.needData = true;
@@ -237,7 +237,7 @@ Parser.prototype._parseAttr = function () {
                 return;
             }
             state.lastTag.raw += matchTrailingSlash[1];
-            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null}); // todo node creation
+            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null});
             state.pos += matchTrailingSlash[1].length;
         }
         var foundPos = state.data.indexOf('>', state.pos);
@@ -290,11 +290,11 @@ Parser.prototype._parseAttr = function () {
     }
     state.lastTag.raw += name_data.match + value_data.match;
 
-    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value}); // todo node creation
+    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value});
 };
 
 Parser.re_parseCData_findEnding = /\]{1,2}$/;
-Parser.prototype._parseCData = function () { // todo remove
+Parser.prototype._parseCData = function () {
     var state = this._state;
     var foundPos = state.data.indexOf(']]>', state.pos);
     if (foundPos < 0 && state.done) {
@@ -322,13 +322,13 @@ Parser.prototype._parseCData = function () { // todo remove
         } else {
             text = state.data.substring(state.pos, foundPos);
         }
-        this._write({type: Mode.CData, data: text}); //todo node creation
+        this._write({type: Mode.CData, data: text});
         state.mode = Mode.Text;
         state.pos = foundPos + 3;
     }
 };
 
-Parser.prototype._parseDoctype = function () { // todo remove
+Parser.prototype._parseDoctype = function () {
     var state = this._state;
     var foundPos = state.data.indexOf('>', state.pos);
     if (foundPos < 0 && state.done) {
@@ -351,7 +351,7 @@ Parser.prototype._parseDoctype = function () { // todo remove
         } else {
             text = state.data.substring(state.pos, foundPos);
         }
-        this._write({type: Mode.Doctype, data: text}); // todo node creation
+        this._write({type: Mode.Doctype, data: text});
         state.mode = Mode.Text;
         state.pos = foundPos + 1;
     }
@@ -387,7 +387,7 @@ Parser.prototype._parseComment = function () {
             text = state.data.substring(state.pos, foundPos);
         }
 
-        this._write({type: Mode.Comment, data: text}); // todo node creation
+        this._write({type: Mode.Comment, data: text});
         state.mode = Mode.Text;
         state.pos = foundPos + 3;
     }

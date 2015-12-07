@@ -103,9 +103,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	    order: ['interpolate', 'escape', 'evaluate'],
 	    evaluate: {
-	        name: 'evaluate',
-	        open: '<evaluate>',
-	        close: '</evaluate>'
+	        name: 'script',
+	        open: '<script>',
+	        close: '</script>'
 	    },
 	    accessory: {
 	        open: '{%',
@@ -198,14 +198,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	Parser.prototype.parseComplete = function (data) {
 	    this.reset();
 	    this.parseChunk(data);
-	    return this.done(data);
+	    return this.done();
 	};
 
-	Parser.prototype.done = function (initialData) {
+	Parser.prototype.done = function () {
 	    this._state.done = true;
 	    this._parse(this._state);
 	    this._flushWrite();
-	    return this._builder.done(initialData);
+	    return this._builder.done();
 	};
 
 	//**Private**//
@@ -282,7 +282,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            text = state.data.substring(state.pos, foundPos);
 	        }
 	        if (text !== '') {
-	            this._write({type: Mode.Text, data: text}); // todo node creation
+	            this._write({type: Mode.Text, data: text});
 	        }
 	        state.pos = foundPos + 1;
 	        state.mode = Mode.Tag;
@@ -329,15 +329,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (state.mode === Mode.Attr) {
 	            state.lastTag = tag;
 	        }
-	        if (tag.name.toLowerCase() === 'script') { // todo remove or replace functionality from builder(may be better)
+	        if (tag.name.toLowerCase() === 'script') {
 	            state.isScript = true;
 	        } else if (tag.name.toLowerCase() === '/script') {
 	            state.isScript = false;
 	        }
 	        if (state.mode === Mode.Attr) {
-	            this._writePending(tag); // todo node creation
+	            this._writePending(tag);
 	        } else {
-	            this._write(tag); // todo node creation
+	            this._write(tag);
 	        }
 	    } else {
 	        state.needData = true;
@@ -402,7 +402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return;
 	            }
 	            state.lastTag.raw += matchTrailingSlash[1];
-	            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null}); // todo node creation
+	            this._write({type: Mode.Tag, name: '/' + state.lastTag.name, raw: null});
 	            state.pos += matchTrailingSlash[1].length;
 	        }
 	        var foundPos = state.data.indexOf('>', state.pos);
@@ -455,11 +455,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    state.lastTag.raw += name_data.match + value_data.match;
 
-	    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value}); // todo node creation
+	    this._writePending({type: Mode.Attr, name: name_data.name, data: value_data.value});
 	};
 
 	Parser.re_parseCData_findEnding = /\]{1,2}$/;
-	Parser.prototype._parseCData = function () { // todo remove
+	Parser.prototype._parseCData = function () {
 	    var state = this._state;
 	    var foundPos = state.data.indexOf(']]>', state.pos);
 	    if (foundPos < 0 && state.done) {
@@ -487,13 +487,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	            text = state.data.substring(state.pos, foundPos);
 	        }
-	        this._write({type: Mode.CData, data: text}); //todo node creation
+	        this._write({type: Mode.CData, data: text});
 	        state.mode = Mode.Text;
 	        state.pos = foundPos + 3;
 	    }
 	};
 
-	Parser.prototype._parseDoctype = function () { // todo remove
+	Parser.prototype._parseDoctype = function () {
 	    var state = this._state;
 	    var foundPos = state.data.indexOf('>', state.pos);
 	    if (foundPos < 0 && state.done) {
@@ -516,7 +516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	            text = state.data.substring(state.pos, foundPos);
 	        }
-	        this._write({type: Mode.Doctype, data: text}); // todo node creation
+	        this._write({type: Mode.Doctype, data: text});
 	        state.mode = Mode.Text;
 	        state.pos = foundPos + 1;
 	    }
@@ -552,7 +552,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            text = state.data.substring(state.pos, foundPos);
 	        }
 
-	        this._write({type: Mode.Comment, data: text}); // todo node creation
+	        this._write({type: Mode.Comment, data: text});
 	        state.mode = Mode.Text;
 	        state.pos = foundPos + 3;
 	    }
@@ -773,8 +773,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
-	Builder.prototype.done = function (initialData) {
-	    return wrapper(stack, staticArraysHolder, initialData);
+	Builder.prototype.done = function () {
+	    return wrapper(stack, staticArraysHolder);
 	};
 
 	module.exports = Builder;
@@ -785,7 +785,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _options = __webpack_require__(1);
 
-	// todo create different commands for debug & relize mode
 	var Command = { // incremental DOM commands
 	    elementOpen: 'elementOpen("',
 	    elementVoid: 'elementVoid("',
@@ -801,12 +800,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
 	        'TE.prototype=new CE();TE.prototype.constructor=TE;';
 
-	    function wrappFn(body, initialData) { // todo remove initialData
+	    function wrappFn(body) {
 	        return (_options.debug) ? ('try {' + body + '} catch (err) {' + error + 'throw new TE('
 	        + JSON.stringify(_template) + ', err.name, err);}') : body;
 	    }
 
-	    function wrapper(stack, holder, initialData) { // todo remove initialData
+	    function wrapper(stack, holder) {
 	        var resultFn;
 	        var glue = '';
 	        var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
@@ -818,17 +817,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        if (_library) {
-	            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue), initialData) + '};';
+	            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue)) + '};';
 	            if (_fnName) // return function with closure as string
 	                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
 	            else // return function with closure
 	                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
-	        } else { // todo is it really need ?
+	        } else {
 	            if (_fnName) // plain function as string
 	                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-	                    + wrappFn(fn + stack.join(glue), initialData) + '}';
+	                    + wrappFn(fn + stack.join(glue)) + '}';
 	            else // plain function
-	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue), initialData));
+	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue)));
 	        }
 
 	        return resultFn;
