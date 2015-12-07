@@ -33,6 +33,7 @@
         </li>
         <%  }); %>
     </ul>
+    <%console.log(a);%>
     <% if (showFootnote){ %>
     <p style="font-size: 12px ;">
         <em>* Olympic gold medalist</em>
@@ -64,7 +65,9 @@
         ]
     };
 
+    itemplate.options({debug: true}); // enable debug mode
     var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
+    itemplate.options({debug: false}); // disable debug mode
     patch(document.querySelector('#container'), render, templateData);
 </script>
 </body>

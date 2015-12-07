@@ -1,0 +1,34 @@
+<!--start embedded js -->
+<ul>
+    <%  var showFootnote = false;
+    data.listItems.forEach(function(listItem, i) {
+    %>
+    <li class="row <%=(i % 2 == 1 ? ' even' : '')%>">
+        <%- listItem.name %>
+        <% if (listItem.hasOlympicGold){
+        showFootnote = true; %>
+        <em>*</em>
+        <% } %>
+    </li>
+    <%  }); %>
+</ul>
+
+<% if (showFootnote){ %>
+<p style="font-size: 12px;">
+    <em>* Olympic gold medalist</em>
+</p>
+<% } %>
+
+<!-- issue -->
+<ul>
+    <% data.listItems.forEach(function(listItem, i) {
+    if (listItem.hasOlympicGold){ %>
+    <li class="row">
+        <% } else { %>
+    <li class="row even">
+        <% } %>
+        <%- listItem.name %>
+        <em>*</em>
+    </li>
+    <%  }); %>
+</ul>

@@ -63,7 +63,7 @@ var reactInit;
     });
 
     function reactAnimate() {
-        React.render(React.createElement(BoxesView, {count: counter++}), document.getElementById('grid'));
+        ReactDOM.render(React.createElement(BoxesView, {count: counter++}), document.getElementById('grid'));
     }
 
     reactInit = function () {

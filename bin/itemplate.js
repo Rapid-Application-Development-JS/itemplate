@@ -641,12 +641,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
 	        if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
 	            decode = decodeAccessory(attributes[_options.staticKey] || makeKey());
-	            stub = decode.isStatic ? '"' : empty;
-	            result = ', ' + stub + decode.value + stub + ', ';
 	            delete attributes[_options.staticKey];
 	        } else {
-	            result = ', null, ';
+	            decode = {value: 'null'};
 	        }
+	        stub = (Object.keys(attributes).length > 0) ? ', ' : empty;
+	        result = ', ' + decode.value + stub;
 	    }
 	    return result;
 	}
@@ -667,11 +667,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            decode = decodeAccessory(attr);
 	            if (decode.isStatic) {
 	                if (arrayStaticKey)
-	                    staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + attr + quote);
+	                    staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + formatText(attr) + quote);
 	                else
-	                    result += comma + key + '", "' + attr + quote;
+	                    result += comma + key + '", "' + formatText(attr) + quote;
 	            } else {
-	                result += comma + key + '", ' + decode.value;
+	                result += comma + key + '", ' + formatText(decode.value);
 	            }
 	        }
 	    }
