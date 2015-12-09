@@ -24,26 +24,29 @@ function decodeAccessory(string, force) {
     var code;
     var isStatic = true, openStub, closeStub;
 
-    code = string.split(regex).map(function (piece, i) {
-        openStub = '';
-        closeStub = '';
+    if (string !== undefined)
+        code = string.split(regex).map(function (piece, i) {
+            openStub = '';
+            closeStub = '';
 
-        if (i % 2) {
-            isStatic = false;
-            piece = piece.trim();
-            if (_options.emptyString && !force) { // undefined as empty string
-                if (piece.indexOf(' ') !== -1) {
-                    openStub = '(';
-                    closeStub = ')';
-                }
-                return ' + (' + openStub + piece + closeStub + ' === undefined ? "" : '
-                    + openStub + piece + closeStub + ') + ';
-            } else
-                return ' + ' + piece + ' + ';
-        } else {
-            return JSON.stringify(piece);
-        }
-    }).join('');
+            if (i % 2) {
+                isStatic = false;
+                piece = piece.trim();
+                if (_options.emptyString && !force) { // undefined as empty string
+                    if (piece.indexOf(' ') !== -1) {
+                        openStub = '(';
+                        closeStub = ')';
+                    }
+                    return ' + (' + openStub + piece + closeStub + ' === undefined ? "" : '
+                        + openStub + piece + closeStub + ') + ';
+                } else
+                    return ' + ' + piece + ' + ';
+            } else {
+                return JSON.stringify(piece);
+            }
+        }).join('');
+    else
+        code = '""';
 
     // micro-optimizations (remove appending empty strings)
     code = code.replace(/^"" \+ | \+ ""$/g, '').replace(/ \+ "" \+ /g, ' + ');
