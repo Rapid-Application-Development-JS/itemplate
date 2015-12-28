@@ -1,0 +1,54 @@
+<!--
+This is just a prototype of compiled function with transclude support
+-->
+
+<div>
+    <h1>Title</h1>
+
+    <hp:transition-group name="fade">
+
+        <div class="container">
+            <hp:transition-group tag="ul" name="bounceIn">
+                <li key="1">Item 1</li>
+                <li key="2">Item 2</li>
+                <li key="3">Item 3</li>
+            </hp:transition-group>
+        </div>
+
+    </hp:transition-group>
+</div>
+<script>
+    elementOpen('div');
+
+    elementOpen('h1');
+    text('Title');
+    elementClose('h1');
+    // ++++++++++++++
+    (function(){
+        helpers['transition-group'](attrs, render);
+        function render(){
+// ++++++++++++++
+            elementOpen('div', null, 'container');
+
+            (function(){
+                helpers['transition-group'](attrs, render);
+                function render() {
+                    elementOpen('li');
+                    text('Item 1');
+                    elementClose('li');
+                    elementOpen('li');
+                    text('Item 2');
+                    elementClose('li');
+                    elementOpen('li');
+                    text('Item 3');
+                    elementClose('li');
+                }
+            }());
+
+            elementClose('div');
+// ++++++++++++++
+        }
+    }());
+    // ++++++++++++++
+    elementClose('div');
+</script>

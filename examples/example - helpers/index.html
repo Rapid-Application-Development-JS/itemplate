@@ -29,15 +29,15 @@
         <em>* Olympic gold medalist</em>
     </p>
     <% } %>
-
+    <div>test</div>
     <!--inner helper-->
-    <my-console data="<%=7+8%>"/>
+    <console data="<%=7+8%>" />
 </script>
 
 <script type="x-template" id="underscore-template">
     <div> <%- data.listTitle %></div>
-    <my-list listItems="<%=data.listItems%>"/>
-    <my-footnote listItems="<%=data.listItems%>"/>
+    <my-list listItems="<%=data.listItems%>"> </my-list>
+    <my-footnote listItems="<%=data.listItems%>"> </my-footnote>
 </script>
 
 <script>
@@ -72,7 +72,7 @@
     var rootTemplate = document.getElementById('underscore-template').innerHTML;
 
     // you can register js function as simply helper
-    itemplate.registerHelper('my-console', function (attrs) {
+    itemplate.registerHelper('console', function (attrs) {
         console.log(attrs);
     });
 

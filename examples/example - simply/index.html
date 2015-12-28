@@ -19,12 +19,14 @@
 <body>
 <div id="container"></div>
 <script type="x-template" id="underscore-template">
-    <div> <%- data.listTitle %></div>
+    <hp:transclude title="<%- data.listTitle %>">
+        <div> <%- data.listTitle %></div>
+    </hp:transclude>
     <ul>
         <%  var showFootnote = false;
             data.listItems.forEach(function(listItem, i) {
         %>
-        <li class="row <%=(i % 2 == 1 ? ' even' : '')%>">
+        <li class="row <%=(i % 2 == 1 ? ' even' : '')%>" data-key="<%= i %>" title="test">
             <%- listItem.name %>
             <% if (listItem.hasOlympicGold){
             showFootnote = true; %>
@@ -34,7 +36,7 @@
         <%  }); %>
     </ul>
     <% if (showFootnote){ %>
-    <p style="font-size: 12px ;">
+    <p style="font-size: 12px;">
         <em>* Olympic gold medalist</em>
     </p>
     <% } %>
@@ -63,6 +65,10 @@
             }
         ]
     };
+
+    itemplate.registerHelper('hp:transclude', function(attrs, renderFn) {
+        renderFn(); // render title
+    });
 
     var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
     patch(document.querySelector('#container'), render, templateData);
