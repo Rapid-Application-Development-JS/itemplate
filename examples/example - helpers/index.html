@@ -6,6 +6,16 @@
     <script src="//underscorejs.org/underscore-min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/incrementaldom/0.2.0/incremental-dom.js"></script>
     <script src="../../bin/itemplate.js"></script>
+    <style>
+        .toggle-title {
+            margin: 0 0 10px;
+            background: #45876f;
+            padding: 10px;
+            color:#fff;
+            font-weight: normal;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 <div id="container"></div>
@@ -29,21 +39,36 @@
         <em>* Olympic gold medalist</em>
     </p>
     <% } %>
-
     <!--inner helper-->
-    <my-console data="<%=7+8%>"/>
+    <console data="<%=7+8%>" />
 </script>
 
 <script type="x-template" id="underscore-template">
     <div> <%- data.listTitle %></div>
-    <my-list listItems="<%=data.listItems%>"/>
-    <my-footnote listItems="<%=data.listItems%>"/>
+    <my-list listItems="<%=data.listItems%>"> </my-list>
+    <my-footnote listItems="<%=data.listItems%>"> </my-footnote>
+
+    <h2>Toggle component in action</h2>
+    <toggle title="Olympic Volleyball Players" opened="<% true %>">
+        <my-list listItems="<%=data.listItems%>"> </my-list>
+    </toggle>
+    <toggle title="Notes">
+        <ul>
+            <li>
+                <p style="font-size: 12px ;">
+                    <em>* Olympic gold medalist</em>
+                </p>
+            </li>
+        </ul>
+    </toggle>
 </script>
 
 <script>
     var patch = IncrementalDOM.patch;
     var elementOpen = IncrementalDOM.elementOpen;
     var elementClose = IncrementalDOM.elementClose;
+    var text = IncrementalDOM.text;
+    var attr = IncrementalDOM.attr;
 
     var templateData = {
         listTitle: "Olympic Volleyball Players",
@@ -72,7 +97,7 @@
     var rootTemplate = document.getElementById('underscore-template').innerHTML;
 
     // you can register js function as simply helper
-    itemplate.registerHelper('my-console', function (attrs) {
+    itemplate.registerHelper('console', function (attrs) {
         console.log(attrs);
     });
 
@@ -93,6 +118,32 @@
             });
         });
         elementClose('ul');
+    });
+
+
+    itemplate.registerHelper('toggle', function (attrs, render) {
+        var opened = attrs.opened;
+
+        // Render title
+        var title = elementOpen('h2', null, null, 'class', 'toggle-title');
+        text(attrs.title);
+        elementClose('h2');
+
+        // Render content holder
+        var content = elementOpen('div', null, null, 'class', 'toggle-content');
+        if (opened) { render();}
+        elementClose('div');
+
+
+        // Toggle content by clicking on title
+        title.onclick = function () {
+            opened = !opened;
+            if (opened) {
+                patch(content, render);
+            } else {
+                patch(content, function() {});
+            }
+        };
     });
 
     // main template rendering

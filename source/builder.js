@@ -122,12 +122,34 @@ function writeText(text) {
     }
 }
 
+var helperOpen = function (helperName, attrs) {
+    stack.push(
+        '(function(){' +
+            'helpers["'+helperName+'"]('+decodeAttrs(attrs)+', render);' +
+            'function render(){'
+    );
+};
+var helperClose = function () {
+    stack.push(
+            '} ' +
+        '}());'
+    );
+};
+
+function isHelperTag(tag) {
+    return helpers.indexOf(tag) !== -1;
+}
+
+// TODO: Clarify logic.
+// Seems like this method only opens state but named as 'CloseOpenState'
+// also seems like `isClosed` flags used only to detect elementVoid and it's a bit confusing
+// because sounds like it can be used to detect tags open or close state.
 function writeAndCloseOpenState(isClosed) {
     var isShouldClose = true;
     if (state.tag) {
-        if (helpers.indexOf(state.tag) !== -1) { // helper case
-            stack.push('helpers["' + state.tag + '"](' + decodeAttrs(state.attributes) + ');');
-            isShouldClose = false;
+        if (isHelperTag(state.tag)) { // helper case
+            helperOpen(state.tag, state.attributes);
+            isShouldClose = isClosed;
         } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
             writeCommand(Command.elementVoid, state.tag, state.attributes);
             isShouldClose = false;
@@ -168,8 +190,13 @@ Builder.prototype.write = function (command) {
         case Mode.Tag:
             tag = command.name.replace('/', empty);
             if (command.name.indexOf('/') === 0) { // close tag case
-                if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name)
-                    writeCommand(Command.elementClose, tag);
+                if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name) {
+                    if (isHelperTag(tag)) {
+                        helperClose();
+                    } else {
+                        writeCommand(Command.elementClose, tag);
+                    }
+                }
             } else { // open tag case
                 writeAndCloseOpenState();
                 state.tag = tag;
