@@ -140,7 +140,7 @@ function isHelperTag(tag) {
     return helpers.indexOf(tag) !== -1;
 }
 
-// TODO: Simplify logic.
+// TODO: Clarify logic.
 // Seems like this method only opens state but named as 'CloseOpenState'
 // also seems like `isClosed` flags used only to detect elementVoid and it's a bit confusing
 // because sounds like it can be used to detect tags open or close state.
