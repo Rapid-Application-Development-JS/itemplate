@@ -10,9 +10,13 @@ var parser = new Parser(builder);
 var helpers = {};
 
 var itemplate = {
-    compile: function (string, library, fnName) {
+    compile: function (string, library, fnName, scopedHelpers, rootKeys) {
         builder.reset();
-        builder.set(Object.keys(helpers));
+        builder.set(
+            Object.keys(helpers),
+            scopedHelpers ? Object.keys(scopedHelpers) : [],
+            rootKeys
+        );
         wrapper.set(library, helpers, fnName, string);
         return parser.parseComplete(prepare(string));
     },

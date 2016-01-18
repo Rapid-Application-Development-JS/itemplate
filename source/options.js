@@ -18,7 +18,7 @@ var _options = {
     },
     // build options
     emptyString: true,
-    staticKey: 'static-key',
+    staticKey: 'key',
     staticArray: 'static-array',
     parameterName: 'data',
     // tags parse rules

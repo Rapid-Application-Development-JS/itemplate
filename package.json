@@ -28,6 +28,7 @@
     "chai": "^3.4.1",
     "chai-fuzzy": "^1.6.0",
     "fs": "0.0.2",
+    "incremental-dom": "^0.3.0",
     "webpack": "^1.12.9"
   },
   "contributors": [
