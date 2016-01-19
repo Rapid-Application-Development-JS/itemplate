@@ -199,7 +199,6 @@ Builder.prototype.reset = function () {
         attributes: {}
     };
     staticArraysHolder = {};
-    localComponentNames = [];
     nestingLevel = 0;
 };
 

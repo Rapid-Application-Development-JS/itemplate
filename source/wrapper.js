@@ -53,18 +53,12 @@ function createWrapper() {
 
         if (_library) {
             fn += 'return function(' + _options.parameterName + ', keys){' + innerVars + wrappFn(stack.join(glue)) + '};';
-            if (_fnName) // return function with closure as string
-                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
-            else // return function with closure
-                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
+            resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
         } else {
-            if (_fnName) // plain function as string
-                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-                    + wrappFn(fn + stack.join(glue)) + '}';
-            else // plain function
-                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue)));
-        }
+            fn = fn + innerVars + stack.join(glue);
+            resultFn = new Function(_options.parameterName, 'lib', 'helpers, keys', wrappFn(fn) );
 
+        }
         return resultFn;
     }
 
