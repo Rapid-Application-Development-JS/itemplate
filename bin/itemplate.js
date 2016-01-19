@@ -66,14 +66,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var helpers = {};
 
 	var itemplate = {
-	    compile: function (string, library, fnName, scopedHelpers, rootKeys) {
+	    compile: function (string, library, scopedHelpers, rootKeys) {
 	        builder.reset();
 	        builder.set(
 	            Object.keys(helpers),
 	            scopedHelpers ? Object.keys(scopedHelpers) : [],
 	            rootKeys
 	        );
-	        wrapper.set(library, helpers, fnName, string);
+	        wrapper.set(library, helpers, null, string);
 	        return parser.parseComplete(prepare(string));
 	    },
 	    options: function (options) {
@@ -784,7 +784,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        attributes: {}
 	    };
 	    staticArraysHolder = {};
-	    localComponentNames = [];
 	    nestingLevel = 0;
 	};
 
@@ -903,18 +902,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        if (_library) {
 	            fn += 'return function(' + _options.parameterName + ', keys){' + innerVars + wrappFn(stack.join(glue)) + '};';
-	            if (_fnName) // return function with closure as string
-	                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
-	            else // return function with closure
-	                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
+	            resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
 	        } else {
-	            if (_fnName) // plain function as string
-	                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-	                    + wrappFn(fn + stack.join(glue)) + '}';
-	            else // plain function
-	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue)));
-	        }
+	            fn = fn + innerVars + stack.join(glue);
+	            resultFn = new Function(_options.parameterName, 'lib', 'helpers, keys', wrappFn(fn) );
 
+	        }
 	        return resultFn;
 	    }
 
