@@ -113,7 +113,7 @@ function prepareAttr(command, attributes) {
 function decodeAttrs(obj) {
     var result = ['{'];
     for (var key in obj)
-        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key], true).value);
+        result.push(((result.length > 1) ? ',' : empty) + '\'' + key + '\'' + ':' + decodeAccessory(obj[key], true).value);
     result.push('}');
 
     return result.join(empty);

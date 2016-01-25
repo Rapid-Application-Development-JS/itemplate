@@ -698,7 +698,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function decodeAttrs(obj) {
 	    var result = ['{'];
 	    for (var key in obj)
-	        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key], true).value);
+	        result.push(((result.length > 1) ? ',' : empty) + '\'' + key + '\'' + ':' + decodeAccessory(obj[key], true).value);
 	    result.push('}');
 
 	    return result.join(empty);
@@ -856,7 +856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    saveElement: 'rootNodes.push(currentElement());',
 	    getKey: 'rootKeys.shift()',
 	    text: 'text(',
-	    close: ');'
+	    close: ');\n'
 	};
 
 	function createWrapper() {
@@ -884,16 +884,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function wrapper(stack, holder) {
 	        var resultFn;
 	        var glue = '';
+	        var eol = '\n';
 	        var fn =
-	            'var elementOpen = lib.elementOpen;' +
-	            'var elementClose = lib.elementClose;' +
-	            'var currentElement = lib.currentElement;' +
-	            'var text = lib.text;' +
-	            'var elementVoid = lib.elementVoid;';
+	            'var elementOpen = lib.elementOpen;' + eol +
+	            'var elementClose = lib.elementClose;' + eol +
+	            'var currentElement = lib.currentElement;' + eol +
+	            'var text = lib.text;' + eol +
+	            'var elementVoid = lib.elementVoid;' + eol;
 
 	        var innerVars =
-	            'var rootNodes = [];' +
-	            'var rootKeys = keys || [];';
+	            'var rootNodes = [];' + eol +
+	            'var rootKeys = keys || [];' + eol;
 
 	        for (var key in holder) { // collect static arrays for function
 	            if (holder.hasOwnProperty(key))
@@ -904,8 +905,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            fn += 'return function(' + _options.parameterName + ', keys){' + innerVars + wrappFn(stack.join(glue)) + '};';
 	            resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
 	        } else {
-	            fn = fn + innerVars + stack.join(glue);
-	            resultFn = new Function(_options.parameterName, 'lib', 'helpers, keys', wrappFn(fn) );
+	            fn = fn + innerVars + wrappFn( stack.join(glue) );
+	            resultFn = new Function(_options.parameterName, 'lib', 'helpers, keys', fn );
 
 	        }
 	        return resultFn;
