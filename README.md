@@ -208,7 +208,7 @@ By default the options have the following values:
         open: "{%",
         close: "%}"
     },
-    staticKey: "static-key"
+    staticKey: "key"
 }
 ```
 You may modify any option.
@@ -229,7 +229,7 @@ The value of this attribute will become the name of the static array:
 If you compile the function of the following template:
 
 ```ejs
-    <div class="box" static-key="box_class" data-key="my-custom-key"
+    <div class="box" key="box_class" data-key="my-custom-key"
          style="top: <%= data.top %>px; left: <%= data.left %>px; background: rgb(0,0,<%= data.color %>);">
         <%= data.content %>
     </div>
