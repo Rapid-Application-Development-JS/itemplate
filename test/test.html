@@ -1,0 +1,141 @@
+<html>
+<head>
+    <title> Tests </title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css"/>
+
+    <script src="../node_modules/incremental-dom/dist/incremental-dom-min.js"></script>
+    <script src="../bin/itemplate.min.js"></script>
+</head>
+<body>
+
+<!--tests templates-->
+<div id="templates">
+    <script type="text/html" id="test-1">
+        <input type="password" name="pass"/>
+        <input type="text" name="text-1" placeholder="some name">
+        <input id="readonly-input" type="text" name="text-2" placeholder="some name" readonly>
+        <input type="text" name="text-3" placeholder="some name"/>
+        <input type="email">
+    </script>
+
+    <script type="text/html" id="test-2">
+        <!--plain html-->
+        <div class="title">Title</div>
+        <ul>
+            <li class="row even">
+                John Smith
+                <em>*</em>
+            </li>
+            <li class="row">
+                Mark Smith
+            </li>
+        </ul>
+
+        <p style="font-size: 12px;">
+            <em>* Olympic gold medalist</em>
+        </p>
+    </script>
+
+    <script type="text/html" id="test-3">
+        <!-- templates as attribute value -->
+        <div>
+            <span class="<%= data.isTrue ? 'first' : 'second' %>" title="<%=data.name%> <%=data.lastName%>"></span>
+        </div>
+
+        <!-- templates as text -->
+        <div class="_1"><%- data.listTitle %></div>
+        <div class="_2">test<%- data.listTitle %></div>
+        <div class="_3"><%- data.listTitle %>test</div>
+        <div class="_4">test<%- data.listTitle %>test</div>
+        <div class="_5">test<%- data.listTitle %>test<%- data.listTitle %></div>
+    </script>
+
+    <script type="text/html" id="test-4">
+        <!--start embedded js -->
+        <ul>
+            <% var showFootnote = false;
+            data.listItems.forEach(function(listItem, i) {
+            %>
+            <li class="row <%=(i % 2 == 1 ? ' even' : '')%>">
+                <%- listItem.name %>
+                <% if (listItem.hasOlympicGold){
+                showFootnote = true; %>
+                <em>*</em>
+                <% } %>
+            </li>
+            <% }); %>
+        </ul>
+
+        <% if (showFootnote){ %>
+        <p style="font-size: 12px;">
+            <em>* Olympic gold medalist</em>
+        </p>
+        <% } %>
+
+        <!-- issue -->
+        <ul>
+            <% data.listItems.forEach(function(listItem, i) {
+            if (listItem.hasOlympicGold){ %>
+            <li class="row">
+                <% } else { %>
+            <li class="row even">
+                <% } %>
+                <%- listItem.name %>
+                <em>*</em>
+            </li>
+            <% }); %>
+        </ul>
+    </script>
+
+    <script type="text/html" id="test-5">
+        <!--decode accessory-->
+        <div class="_1" attr="<%- data.listTitle %>"></div>
+        <div class="_2" attr="test<%- data.listTitle %>"></div>
+        <div class="_3" attr="<%- data.listTitle %>test"></div>
+        <div class="_4" attr="test<%- data.listTitle %>test"></div>
+        <div class="_5" attr="test<%- data.listTitle %>test<%- data.listTitle %>"></div>
+    </script>
+
+    <script type="text/html" id="test-6">
+        <!--keys cases-->
+        <ul>
+            <% data.array.forEach(function(item) { %>
+            <li static-key="<%='key_'+item.id%>"><%=item.value%></li>
+            <% }); %>
+        </ul>
+
+        <ul>
+            <% data.array.forEach(function(item) { %>
+            <li><%=item.value%></li>
+            <% }); %>
+        </ul>
+
+    </script>
+
+    <script type="text/html" id="test-7">
+        <!--arrays cases-->
+        <div id="_1" static-array="myCustomArray"></div>
+        <div id="_2" static-array="myCustomArray" class="shadow" style="border: dashed;"></div>
+    </script>
+</div>
+
+<!--test functionality-->
+<div id="mocha"></div>
+<script src="../node_modules/mocha/mocha.js"></script>
+<script src="../node_modules/chai/chai.js"></script>
+<script>
+    mocha.ui('bdd');
+    mocha.reporter('html');
+    var expect = chai.expect;
+</script>
+<script src="test.js"></script>
+<script>
+    if (window.mochaPhantomJS) {
+        mochaPhantomJS.run();
+    }
+    else {
+        mocha.run();
+    }
+</script>
+</body>
+</html>

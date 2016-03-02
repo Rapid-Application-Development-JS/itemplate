@@ -4,7 +4,7 @@
   "description": "Library for converting templates into Incremental DOM rendering functions",
   "main": "bin/itemplate.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha-phantomjs test/test.html",
     "build": "webpack && webpack --config webpack.config.release.js"
   },
   "repository": {
@@ -25,9 +25,13 @@
     "url": "https://github.com/Rapid-Application-Development-JS/itemplate/issues"
   },
   "devDependencies": {
-    "chai": "^3.4.1",
+    "chai": "^3.5.0",
     "chai-fuzzy": "^1.6.0",
     "fs": "0.0.2",
+    "incremental-dom": "^0.3.0",
+    "mocha": "^2.4.5",
+    "mocha-phantomjs": "^4.0.2",
+    "phantomjs": "^2.1.3",
     "webpack": "^1.12.9"
   },
   "contributors": [
