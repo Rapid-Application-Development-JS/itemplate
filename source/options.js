@@ -20,6 +20,7 @@ var _options = {
     emptyString: true,
     staticKey: 'key',
     staticArray: 'static-array',
+    nonStaticAttributes: ['id', 'name'],
     parameterName: 'data',
     // tags parse rules
     voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',

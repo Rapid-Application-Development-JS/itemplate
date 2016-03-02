@@ -10,7 +10,7 @@ var wrapper; // external wrapper functionality
 var helpers; // keys for helpers
 var localComponentNames = []; // keys for local helpers
 
-var empty = '', quote = '"', comma = ', "'; // auxiliary
+var empty = '', quote = '"', comma = ', "', removable = '-%%&&##__II-'; // auxiliary
 
 var nestingLevel = 0;
 
@@ -88,7 +88,7 @@ function prepareAttr(command, attributes) {
     if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
         if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
             arrayStaticKey = attributes[_options.staticArray] || makeKey();
-            staticArraysHolder[arrayStaticKey] = [];
+            staticArraysHolder[arrayStaticKey] = staticArraysHolder[arrayStaticKey] || {};
             delete attributes[_options.staticArray];
         }
 
@@ -97,16 +97,36 @@ function prepareAttr(command, attributes) {
             attr = attributes[key];
             attr = (attr === null) ? key : ((attr === undefined) ? '' : attr);
             decode = decodeAccessory(attr);
-            if (decode.isStatic) {
-                if (arrayStaticKey)
-                    staticArraysHolder[arrayStaticKey].push(quote + key + quote, quote + formatText(attr) + quote);
-                else
+            if (decode.isStatic && (_options.nonStaticAttributes.indexOf(key) === -1)) {
+                if (arrayStaticKey) {
+                    var value = formatText(attr);
+                    if (!staticArraysHolder[arrayStaticKey].hasOwnProperty(key)) {
+                        staticArraysHolder[arrayStaticKey][key] = value;
+                    } else if (staticArraysHolder[arrayStaticKey][key] !== value) {
+                        staticArraysHolder[arrayStaticKey][key] = removable;
+                        result += comma + key + '", "' + value + quote;
+                    }
+                } else
                     result += comma + key + '", "' + formatText(attr) + quote;
             } else {
                 result += comma + key + '", ' + formatText(decode.value);
             }
         }
     }
+    return result;
+}
+
+function unwrapStaticArrays(holder) {
+    var result = {}, obj, key;
+    for (var arrayName in holder) {
+        obj = holder[arrayName];
+        result[arrayName] = [];
+
+        for (key in obj)
+            if (obj[key] !== removable)
+                result[arrayName].push(quote + key + quote, quote + obj[key] + quote);
+    }
+
     return result;
 }
 
@@ -253,7 +273,7 @@ Builder.prototype.write = function (command) {
 };
 
 Builder.prototype.done = function () {
-    return wrapper(stack, staticArraysHolder);
+    return wrapper(stack, unwrapStaticArrays(staticArraysHolder));
 };
 
 module.exports = Builder;
