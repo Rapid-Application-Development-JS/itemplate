@@ -4,27 +4,48 @@ var Command = { // incremental DOM commands
     elementOpen: 'elementOpen("',
     elementVoid: 'elementVoid("',
     elementClose: 'elementClose("',
+    saveElement: 'rootNodes.push(currentElement());',
+    getKey: 'rootKeys.shift()',
     text: 'text(',
-    close: ');'
+    close: ');\n'
 };
 
 function createWrapper() {
     var _library, _helpers, _fnName, _template;
 
-    var error = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
+    var prepareError = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
         'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
         'TE.prototype=new CE();TE.prototype.constructor=TE;';
 
+    var returnValue = ' return rootNodes;';
+
     function wrappFn(body) {
-        return (_options.debug) ? ('try {' + body + '} catch (err) {' + error + 'throw new TE('
-        + JSON.stringify(_template) + ', err.name, err);}') : body;
+
+        if (_options.debug) {
+            return 'try {'
+                + body +
+                '} catch (err) {'
+                + prepareError +
+                'throw new TE(' + JSON.stringify(_template) + ', err.name, err);}' + returnValue;
+        }
+
+        return body + returnValue;
     }
 
     function wrapper(stack, holder) {
         var resultFn;
         var glue = '';
-        var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
-            'elementVoid=lib.elementVoid;';
+        var eol = '\n';
+        var fn =
+            'var elementOpen = lib.elementOpen;' + eol +
+            'var elementClose = lib.elementClose;' + eol +
+            'var currentElement = lib.currentElement;' + eol +
+            'var text = lib.text;' + eol +
+            'var elementVoid = lib.elementVoid;' + eol;
+
+        var innerVars =
+            'var rootNodes = [];' + eol +
+            'var rootKeys = keys || [];' + eol;
 
         for (var key in holder) { // collect static arrays for function
             if (holder.hasOwnProperty(key))
@@ -32,19 +53,13 @@ function createWrapper() {
         }
 
         if (_library) {
-            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue)) + '};';
-            if (_fnName) // return function with closure as string
-                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
-            else // return function with closure
-                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
+            fn += 'return function(' + _options.parameterName + ', keys){' + innerVars + wrappFn(stack.join(glue)) + '};';
+            resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
         } else {
-            if (_fnName) // plain function as string
-                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-                    + wrappFn(fn + stack.join(glue)) + '}';
-            else // plain function
-                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue)));
-        }
+            fn = fn + innerVars + wrappFn( stack.join(glue) );
+            resultFn = new Function(_options.parameterName, 'lib', 'helpers, keys', fn );
 
+        }
         return resultFn;
     }
 

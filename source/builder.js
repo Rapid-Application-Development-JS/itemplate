@@ -8,8 +8,15 @@ var stack; // result builder
 var staticArraysHolder = {}; // holder for static arrays
 var wrapper; // external wrapper functionality
 var helpers; // keys for helpers
+var localComponentNames = []; // keys for local helpers
 
 var empty = '', quote = '"', comma = ', "'; // auxiliary
+
+var nestingLevel = 0;
+
+function isRootNode() {
+    return nestingLevel === 0;
+}
 
 function makeKey() {
     var text = new Array(12), possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz';
@@ -58,12 +65,15 @@ function formatText(text) {
     return text.trim().replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); });
 }
 
-function prepareKey(command, attributes) {
+function prepareKey(command, attributes, useKeyCommand) {
     var result = empty; var decode; var stub;
-    if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
+    if ((command === Command.elementOpen || command === Command.elementVoid)) {
+
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
             decode = decodeAccessory(attributes[_options.staticKey] || makeKey());
             delete attributes[_options.staticKey];
+        } else if (useKeyCommand) {
+            decode = {value: Command.getKey};
         } else {
             decode = {value: 'null'};
         }
@@ -103,15 +113,21 @@ function prepareAttr(command, attributes) {
 function decodeAttrs(obj) {
     var result = ['{'];
     for (var key in obj)
-        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key], true).value);
+        result.push(((result.length > 1) ? ',' : empty) + '\'' + key + '\'' + ':' + decodeAccessory(obj[key], true).value);
     result.push('}');
 
     return result.join(empty);
 }
 
-function writeCommand(command, tag, attributes) {
-    stack.push(command + tag + quote + prepareKey(command, attributes) + prepareAttr(command, attributes)
-        + Command.close);
+function writeCommand(command, tag, attributes, isRootNode) {
+    var strKey = prepareKey(command, attributes, isRootNode);
+    var strAttrs = prepareAttr(command, attributes);
+
+    stack.push(command + tag + quote + strKey + strAttrs + Command.close);
+
+    if (isRootNode) {
+        stack.push(Command.saveElement);
+    }
 }
 
 function writeText(text) {
@@ -125,19 +141,19 @@ function writeText(text) {
 var helperOpen = function (helperName, attrs) {
     stack.push(
         '(function(){' +
-            'helpers["'+helperName+'"]('+decodeAttrs(attrs)+', render);' +
-            'function render(){'
+        'helpers["'+helperName+'"]('+decodeAttrs(attrs)+', render);' +
+        'function render(){'
     );
 };
 var helperClose = function () {
     stack.push(
-            '} ' +
+        '} ' +
         '}());'
     );
 };
 
 function isHelperTag(tag) {
-    return helpers.indexOf(tag) !== -1;
+    return localComponentNames.indexOf(tag) !== -1 || helpers.indexOf(tag) !== -1;
 }
 
 // TODO: Clarify logic.
@@ -146,16 +162,21 @@ function isHelperTag(tag) {
 // because sounds like it can be used to detect tags open or close state.
 function writeAndCloseOpenState(isClosed) {
     var isShouldClose = true;
+
     if (state.tag) {
+        var isRoot = isRootNode();
+
         if (isHelperTag(state.tag)) { // helper case
             helperOpen(state.tag, state.attributes);
             isShouldClose = isClosed;
         } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
-            writeCommand(Command.elementVoid, state.tag, state.attributes);
+            writeCommand(Command.elementVoid, state.tag, state.attributes, isRoot);
             isShouldClose = false;
         } else if (state.tag !== _options.evaluate.name) { // standard mode
-            writeCommand(Command.elementOpen, state.tag, state.attributes);
+            writeCommand(Command.elementOpen, state.tag, state.attributes, isRoot);
         } // if we write code, do nothing
+
+        nestingLevel++;
     }
 
     // clear builder state for next tag
@@ -178,10 +199,12 @@ Builder.prototype.reset = function () {
         attributes: {}
     };
     staticArraysHolder = {};
+    nestingLevel = 0;
 };
 
-Builder.prototype.set = function (helpersKeys) {
+Builder.prototype.set = function (helpersKeys, localNames) {
     helpers = helpersKeys;
+    localComponentNames = localNames || [];
 };
 
 Builder.prototype.write = function (command) {
@@ -189,15 +212,22 @@ Builder.prototype.write = function (command) {
     switch (command.type) {
         case Mode.Tag:
             tag = command.name.replace('/', empty);
-            if (command.name.indexOf('/') === 0) { // close tag case
+
+            if (command.name.indexOf('/') === 0) {
+
+                // close tag case
                 if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name) {
                     if (isHelperTag(tag)) {
                         helperClose();
+                        nestingLevel--;
                     } else {
                         writeCommand(Command.elementClose, tag);
+                        nestingLevel--;
                     }
                 }
-            } else { // open tag case
+            } else {
+
+                // open tag case
                 writeAndCloseOpenState();
                 state.tag = tag;
                 state.attributes = {};

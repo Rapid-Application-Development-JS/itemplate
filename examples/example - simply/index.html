@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>incremental-dom</title>
-    <script src="//ajax.googleapis.com/ajax/libs/incrementaldom/0.2.0/incremental-dom.js"></script>
+    <script src="../../node_modules/incremental-dom/dist/incremental-dom.js"></script>
     <script src="../../bin/itemplate.js"></script>
 
     <style type="text/css">
@@ -19,9 +19,6 @@
 <body>
 <div id="container"></div>
 <script type="x-template" id="underscore-template">
-    <hp:transclude title="<%- data.listTitle %>">
-        <div> <%- data.listTitle %></div>
-    </hp:transclude>
     <ul>
         <%  var showFootnote = false;
             data.listItems.forEach(function(listItem, i) {
@@ -65,10 +62,6 @@
             }
         ]
     };
-
-    itemplate.registerHelper('hp:transclude', function(attrs, renderFn) {
-        renderFn(); // render title
-    });
 
     var render = itemplate.compile(document.getElementById('underscore-template').innerHTML, IncrementalDOM);
     patch(document.querySelector('#container'), render, templateData);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>incremental-dom helpers</title>
     <script src="//underscorejs.org/underscore-min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/incrementaldom/0.2.0/incremental-dom.js"></script>
+    <script src="../../node_modules/incremental-dom/dist/incremental-dom.js"></script>
     <script src="../../bin/itemplate.js"></script>
     <style>
         .toggle-title {
@@ -148,7 +148,10 @@
 
     // main template rendering
     var rootRenderFn = itemplate.compile(rootTemplate, IncrementalDOM);
-    patch(document.querySelector('#container'), rootRenderFn, templateData);
+
+    patch(document.querySelector('#container'), function(data) {
+        rootRenderFn(data, ['key-01', 'key-02']);
+    }, templateData);
 </script>
 </body>
 </html>

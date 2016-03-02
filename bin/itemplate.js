@@ -66,10 +66,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var helpers = {};
 
 	var itemplate = {
-	    compile: function (string, library, fnName) {
+	    compile: function (string, library, scopedHelpers, rootKeys) {
 	        builder.reset();
-	        builder.set(Object.keys(helpers));
-	        wrapper.set(library, helpers, fnName, string);
+	        builder.set(
+	            Object.keys(helpers),
+	            scopedHelpers ? Object.keys(scopedHelpers) : [],
+	            rootKeys
+	        );
+	        wrapper.set(library, helpers, null, string);
 	        return parser.parseComplete(prepare(string));
 	    },
 	    options: function (options) {
@@ -113,7 +117,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	    // build options
 	    emptyString: true,
-	    staticKey: 'static-key',
+	    staticKey: 'key',
 	    staticArray: 'static-array',
 	    parameterName: 'data',
 	    // tags parse rules
@@ -588,8 +592,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	var staticArraysHolder = {}; // holder for static arrays
 	var wrapper; // external wrapper functionality
 	var helpers; // keys for helpers
+	var localComponentNames = []; // keys for local helpers
 
 	var empty = '', quote = '"', comma = ', "'; // auxiliary
+
+	var nestingLevel = 0;
+
+	function isRootNode() {
+	    return nestingLevel === 0;
+	}
 
 	function makeKey() {
 	    var text = new Array(12), possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgijklmnopqrstuvwxyz';
@@ -638,12 +649,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return text.trim().replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); });
 	}
 
-	function prepareKey(command, attributes) {
+	function prepareKey(command, attributes, useKeyCommand) {
 	    var result = empty; var decode; var stub;
-	    if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
+	    if ((command === Command.elementOpen || command === Command.elementVoid)) {
+
 	        if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
 	            decode = decodeAccessory(attributes[_options.staticKey] || makeKey());
 	            delete attributes[_options.staticKey];
+	        } else if (useKeyCommand) {
+	            decode = {value: Command.getKey};
 	        } else {
 	            decode = {value: 'null'};
 	        }
@@ -683,15 +697,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	function decodeAttrs(obj) {
 	    var result = ['{'];
 	    for (var key in obj)
-	        result.push(((result.length > 1) ? ',' : empty) + key + ':' + decodeAccessory(obj[key], true).value);
+	        result.push(((result.length > 1) ? ',' : empty) + '\'' + key + '\'' + ':' + decodeAccessory(obj[key], true).value);
 	    result.push('}');
 
 	    return result.join(empty);
 	}
 
-	function writeCommand(command, tag, attributes) {
-	    stack.push(command + tag + quote + prepareKey(command, attributes) + prepareAttr(command, attributes)
-	        + Command.close);
+	function writeCommand(command, tag, attributes, isRootNode) {
+	    var strKey = prepareKey(command, attributes, isRootNode);
+	    var strAttrs = prepareAttr(command, attributes);
+
+	    stack.push(command + tag + quote + strKey + strAttrs + Command.close);
+
+	    if (isRootNode) {
+	        stack.push(Command.saveElement);
+	    }
 	}
 
 	function writeText(text) {
@@ -705,19 +725,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	var helperOpen = function (helperName, attrs) {
 	    stack.push(
 	        '(function(){' +
-	            'helpers["'+helperName+'"]('+decodeAttrs(attrs)+', render);' +
-	            'function render(){'
+	        'helpers["'+helperName+'"]('+decodeAttrs(attrs)+', render);' +
+	        'function render(){'
 	    );
 	};
 	var helperClose = function () {
 	    stack.push(
-	            '} ' +
+	        '} ' +
 	        '}());'
 	    );
 	};
 
 	function isHelperTag(tag) {
-	    return helpers.indexOf(tag) !== -1;
+	    return localComponentNames.indexOf(tag) !== -1 || helpers.indexOf(tag) !== -1;
 	}
 
 	// TODO: Clarify logic.
@@ -726,16 +746,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	// because sounds like it can be used to detect tags open or close state.
 	function writeAndCloseOpenState(isClosed) {
 	    var isShouldClose = true;
+
 	    if (state.tag) {
+	        var isRoot = isRootNode();
+
 	        if (isHelperTag(state.tag)) { // helper case
 	            helperOpen(state.tag, state.attributes);
 	            isShouldClose = isClosed;
 	        } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
-	            writeCommand(Command.elementVoid, state.tag, state.attributes);
+	            writeCommand(Command.elementVoid, state.tag, state.attributes, isRoot);
 	            isShouldClose = false;
 	        } else if (state.tag !== _options.evaluate.name) { // standard mode
-	            writeCommand(Command.elementOpen, state.tag, state.attributes);
+	            writeCommand(Command.elementOpen, state.tag, state.attributes, isRoot);
 	        } // if we write code, do nothing
+
+	        nestingLevel++;
 	    }
 
 	    // clear builder state for next tag
@@ -758,10 +783,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        attributes: {}
 	    };
 	    staticArraysHolder = {};
+	    nestingLevel = 0;
 	};
 
-	Builder.prototype.set = function (helpersKeys) {
+	Builder.prototype.set = function (helpersKeys, localNames) {
 	    helpers = helpersKeys;
+	    localComponentNames = localNames || [];
 	};
 
 	Builder.prototype.write = function (command) {
@@ -769,15 +796,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    switch (command.type) {
 	        case Mode.Tag:
 	            tag = command.name.replace('/', empty);
-	            if (command.name.indexOf('/') === 0) { // close tag case
+
+	            if (command.name.indexOf('/') === 0) {
+
+	                // close tag case
 	                if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name) {
 	                    if (isHelperTag(tag)) {
 	                        helperClose();
+	                        nestingLevel--;
 	                    } else {
 	                        writeCommand(Command.elementClose, tag);
+	                        nestingLevel--;
 	                    }
 	                }
-	            } else { // open tag case
+	            } else {
+
+	                // open tag case
 	                writeAndCloseOpenState();
 	                state.tag = tag;
 	                state.attributes = {};
@@ -818,27 +852,48 @@ return /******/ (function(modules) { // webpackBootstrap
 	    elementOpen: 'elementOpen("',
 	    elementVoid: 'elementVoid("',
 	    elementClose: 'elementClose("',
+	    saveElement: 'rootNodes.push(currentElement());',
+	    getKey: 'rootKeys.shift()',
 	    text: 'text(',
-	    close: ');'
+	    close: ');\n'
 	};
 
 	function createWrapper() {
 	    var _library, _helpers, _fnName, _template;
 
-	    var error = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
+	    var prepareError = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
 	        'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
 	        'TE.prototype=new CE();TE.prototype.constructor=TE;';
 
+	    var returnValue = ' return rootNodes;';
+
 	    function wrappFn(body) {
-	        return (_options.debug) ? ('try {' + body + '} catch (err) {' + error + 'throw new TE('
-	        + JSON.stringify(_template) + ', err.name, err);}') : body;
+
+	        if (_options.debug) {
+	            return 'try {'
+	                + body +
+	                '} catch (err) {'
+	                + prepareError +
+	                'throw new TE(' + JSON.stringify(_template) + ', err.name, err);}' + returnValue;
+	        }
+
+	        return body + returnValue;
 	    }
 
 	    function wrapper(stack, holder) {
 	        var resultFn;
 	        var glue = '';
-	        var fn = 'var elementOpen=lib.elementOpen,elementClose=lib.elementClose,text=lib.text,' +
-	            'elementVoid=lib.elementVoid;';
+	        var eol = '\n';
+	        var fn =
+	            'var elementOpen = lib.elementOpen;' + eol +
+	            'var elementClose = lib.elementClose;' + eol +
+	            'var currentElement = lib.currentElement;' + eol +
+	            'var text = lib.text;' + eol +
+	            'var elementVoid = lib.elementVoid;' + eol;
+
+	        var innerVars =
+	            'var rootNodes = [];' + eol +
+	            'var rootKeys = keys || [];' + eol;
 
 	        for (var key in holder) { // collect static arrays for function
 	            if (holder.hasOwnProperty(key))
@@ -846,19 +901,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        if (_library) {
-	            fn += 'return function(' + _options.parameterName + '){' + wrappFn(stack.join(glue)) + '};';
-	            if (_fnName) // return function with closure as string
-	                resultFn = 'function ' + _fnName + '(lib, helpers){' + fn + '}';
-	            else // return function with closure
-	                resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
+	            fn += 'return function(' + _options.parameterName + ', keys){' + innerVars + wrappFn(stack.join(glue)) + '};';
+	            resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
 	        } else {
-	            if (_fnName) // plain function as string
-	                resultFn = 'function ' + _fnName + '(' + _options.parameterName + ', lib, helpers){'
-	                    + wrappFn(fn + stack.join(glue)) + '}';
-	            else // plain function
-	                resultFn = new Function(_options.parameterName, 'lib', 'helpers', wrappFn(fn + stack.join(glue)));
-	        }
+	            fn = fn + innerVars + wrappFn( stack.join(glue) );
+	            resultFn = new Function(_options.parameterName, 'lib', 'helpers, keys', fn );
 
+	        }
 	        return resultFn;
 	    }
 
