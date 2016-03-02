@@ -62,31 +62,6 @@
 //    console.log(template.toString());
 //});
 
-//describe("DOM Tests", function () {
-//    var el = document.createElement("div");
-//    el.id = "myDiv";
-//    el.innerHTML = "Hi there!";
-//    el.style.background = "#ccc";
-//    document.body.appendChild(el);
-//
-//    var myEl = document.getElementById('myDiv');
-//    it("is in the DOM", function () {
-//        expect(myEl).to.not.equal(null);
-//    });
-//
-//    it("is a child of the body", function () {
-//        expect(myEl.parentElement).to.equal(document.body);
-//    });
-//
-//    it("has the right text", function () {
-//        expect(myEl.innerHTML).to.equal("Hi there!");
-//    });
-//
-//    it("has the right background", function () {
-//        expect(myEl.style.background).to.equal("rgb(204, 204, 204)");
-//    });
-//});
-
 describe("DOM Tests", function () {
     var container;
 
@@ -230,6 +205,10 @@ describe("DOM Tests", function () {
         var template = itemplate.compile(document.querySelector('#test-7').textContent, IncrementalDOM);
         IncrementalDOM.patch(container, template);
 
-        console.log(container.innerHTML);
+        var firstEl = container.querySelector('#id_1');
+        var secondEl = container.querySelector('#id_2');
+
+        expect(firstEl.style.border).to.equal(secondEl.style.border);
+        expect(firstEl.className).to.equal(secondEl.className);
     });
 });
