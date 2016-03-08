@@ -139,15 +139,27 @@ function decodeAttrs(obj) {
     return result.join(empty);
 }
 
-function writeCommand(command, tag, attributes, isRootNode) {
-    var strKey = prepareKey(command, attributes, isRootNode);
+function camelCase(input) {
+    return input.replace(/\s/g, '').replace(/-(.)/g, function(match, group1) {
+        return group1.toUpperCase();
+    });
+}
+
+function writeCommand(command, tag, attributes) {
+    if (attributes && attributes.ref) {
+        var refName = attributes.ref;
+        delete attributes.ref;
+    }
+
+    var strKey = prepareKey(command, attributes);
     var strAttrs = prepareAttr(command, attributes);
 
-    stack.push(command + tag + quote + strKey + strAttrs + Command.close);
-
-    if (isRootNode) {
-        stack.push(Command.saveElement);
+    if (refName) {
+        // i.e. ref[refName] = elementOpen(...)
+        command = Command.saveRef(camelCase(refName), command);
     }
+
+    stack.push(command + tag + quote + strKey + strAttrs + Command.close);
 }
 
 function writeText(text) {

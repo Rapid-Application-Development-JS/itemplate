@@ -4,61 +4,59 @@ var Command = { // incremental DOM commands
     elementOpen: 'elementOpen("',
     elementVoid: 'elementVoid("',
     elementClose: 'elementClose("',
-    saveElement: 'rootNodes.push(currentElement());',
-    getKey: 'rootKeys.shift()',
+    saveRef: function(name, command) {
+        return 'refs.'+ name +' = ' + command;
+    },
     text: 'text(',
     close: ');\n'
 };
 
 function createWrapper() {
     var _library, _helpers, _fnName, _template;
+    var glue = '';
+    var eol = '\n';
 
-    var prepareError = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
-        'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
-        'TE.prototype=new CE();TE.prototype.constructor=TE;';
+    function wrapFn(body) {
+        var returnValue = eol + ' return refs;';
 
-    var returnValue = ' return rootNodes;';
-
-    function wrappFn(body) {
+        var prepareError = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
+            'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
+            'TE.prototype=new CE();TE.prototype.constructor=TE;';
 
         if (_options.debug) {
             return 'try {'
                 + body +
                 '} catch (err) {'
                 + prepareError +
-                'throw new TE(' + JSON.stringify(_template) + ', err.name, err);}' + returnValue;
+                'throw new TE(' + JSON.stringify(_template) + ', err.name, err);' +
+                '}'
+                + returnValue;
         }
-
         return body + returnValue;
     }
 
     function wrapper(stack, holder) {
         var resultFn;
-        var glue = '';
-        var eol = '\n';
-        var fn =
-            'var elementOpen = lib.elementOpen;' + eol +
-            'var elementClose = lib.elementClose;' + eol +
-            'var currentElement = lib.currentElement;' + eol +
-            'var text = lib.text;' + eol +
-            'var elementVoid = lib.elementVoid;' + eol;
-
-        var innerVars =
-            'var rootNodes = [];' + eol +
-            'var rootKeys = keys || [];' + eol;
+        var variables = [
+                'var elementOpen = lib.elementOpen;',
+                'var elementClose = lib.elementClose;',
+                'var currentElement = lib.currentElement;',
+                'var text = lib.text;',
+                'var elementVoid = lib.elementVoid;',
+                'var refs = {};'
+            ].join(eol) + eol;
 
         for (var key in holder) { // collect static arrays for function
             if (holder.hasOwnProperty(key))
-                fn += 'var ' + key + '=[' + holder[key] + '];';
+                variables += 'var ' + key + '=[' + holder[key] + '];';
         }
+        var body = variables + wrapFn(stack.join(glue));
 
         if (_library) {
-            fn += 'return function(' + _options.parameterName + ', keys){' + innerVars + wrappFn(stack.join(glue)) + '};';
-            resultFn = (new Function('lib', 'helpers', fn))(_library, _helpers);
+            body = 'return function(' + _options.parameterName + '){' + body + '};';
+            resultFn = (new Function('lib', 'helpers', body))(_library, _helpers);
         } else {
-            fn = fn + innerVars + wrappFn( stack.join(glue) );
-            resultFn = new Function(_options.parameterName, 'lib', 'helpers, keys', fn );
-
+            resultFn = new Function(_options.parameterName, 'lib', 'helpers', body );
         }
         return resultFn;
     }

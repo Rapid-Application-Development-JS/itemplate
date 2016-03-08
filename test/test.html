@@ -10,16 +10,9 @@
 
 <!--tests templates-->
 <div id="templates">
-    <script type="text/html" id="test-1">
-        <input type="password" name="pass"/>
-        <input type="text" name="text-1" placeholder="some name">
-        <input id="readonly-input" type="text" name="text-2" placeholder="some name" readonly>
-        <input type="text" name="text-3" placeholder="some name"/>
-        <input type="email">
-    </script>
 
-    <script type="text/html" id="test-2">
-        <!--plain html-->
+    <!--plain html test-->
+    <script type="text/html" id="test-0_0_1">
         <div class="title">Title</div>
         <ul>
             <li class="row even">
@@ -36,8 +29,49 @@
         </p>
     </script>
 
-    <script type="text/html" id="test-3">
-        <!-- templates as attribute value -->
+    <script type="text/html" id="test-0_0_2">
+        <div class="box" my-attr>
+            <span>some text</span>
+        </div>
+        <div my-attr="" class="box">
+            <span>some text</span>
+        </div>
+        <div my-attr="some-value" class="box">
+            <span>some text</span>
+        </div>
+    </script>
+
+    <script type="text/html" id="test-0_0_3">
+        <div>
+            Some text
+            <div class="my_class">Other text</div>
+            <!--My comment-->
+            <pre class="lang">
+                some codes "&#60;" and "&#38;" '.
+            </pre>
+            <code>
+                my code
+            </code>
+            <x-tag>
+                My custom tag ;-)
+            </x-tag>
+
+            <![CDATA[
+            <sender>John Smith</sender>
+            ]]>
+        </div>
+    </script>
+
+    <!--inputs tests-->
+    <script type="text/html" id="test-0_1_1">
+        <input id="readonly-input" type="text" name="text-2" placeholder="some name" readonly>
+    </script>
+    <script type="text/html" id="test-0_1_2">
+        <input id="readonly-input-2" type="text" name="text-2" placeholder="some name" readonly/>
+    </script>
+
+    <!-- attribute value -->
+    <script type="text/html" id="test-0_2_1">
         <div>
             <span class="<%= data.isTrue ? 'first' : 'second' %>" title="<%=data.name%> <%=data.lastName%>"></span>
         </div>
@@ -50,8 +84,8 @@
         <div class="_5">test<%- data.listTitle %>test<%- data.listTitle %></div>
     </script>
 
-    <script type="text/html" id="test-4">
-        <!--start embedded js -->
+    <!-- embedded js -->
+    <script type="text/html" id="test-0_2_2">
         <ul>
             <% var showFootnote = false;
             data.listItems.forEach(function(listItem, i) {
@@ -87,8 +121,8 @@
         </ul>
     </script>
 
-    <script type="text/html" id="test-5">
-        <!--decode accessory-->
+    <!--decode accessory-->
+    <script type="text/html" id="test-0_2_3">
         <div class="_1" attr="<%- data.listTitle %>"></div>
         <div class="_2" attr="test<%- data.listTitle %>"></div>
         <div class="_3" attr="<%- data.listTitle %>test"></div>
@@ -96,8 +130,8 @@
         <div class="_5" attr="test<%- data.listTitle %>test<%- data.listTitle %>"></div>
     </script>
 
-    <script type="text/html" id="test-6">
-        <!--keys cases-->
+    <!--keys cases-->
+    <script type="text/html" id="test-0_3_1">
         <ul>
             <% data.array.forEach(function(item) { %>
             <li key="<%='key_'+item.id%>"><%=item.value%></li>
@@ -112,11 +146,42 @@
 
     </script>
 
-    <script type="text/html" id="test-7">
-        <!--arrays cases-->
+    <!-- static arrays -->
+    <script type="text/html" id="test-0_3_2">
         <div id="id_1" static-array="myCustomArray" class="shadow" style="border: dashed;"></div>
         <div id="id_2" static-array="myCustomArray"></div>
     </script>
+
+    <!--close helper-->
+    <script type="text/html" id="test-0_3_3">
+        <my-input class="my-class"/>
+    </script>
+
+    <!--wrapped helper-->
+    <script type="text/html" id="test-0_3_4">
+        <my-div class="my-wrapper-class">
+            <my-input class="my-class"/>
+        </my-div>
+    </script>
+
+    <!--wrapped helper-->
+    <script type="text/html" id="test-0_3_5">
+        <my-section>
+            <my-div class="my-wrapper-class">
+                <my-input class="my-class"/>
+            </my-div>
+        </my-section>
+    </script>
+
+    <!--refs-->
+    <script type="text/html" id="test-0_4_1">
+        <section ref="section">
+            <div ref="div" class="my-wrapper-class">
+                <input ref="input" class="my-class"/>
+            </div>
+        </section>
+    </script>
+
 </div>
 
 <!--test functionality-->

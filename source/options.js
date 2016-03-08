@@ -23,6 +23,7 @@ var _options = {
     nonStaticAttributes: ['id', 'name'],
     parameterName: 'data',
     // tags parse rules
+    textSaveTags: ['pre', 'code'],
     voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
         'param', 'source', 'track', 'wbr'],
     debug: false

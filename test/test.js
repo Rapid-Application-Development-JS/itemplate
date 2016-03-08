@@ -1,67 +1,3 @@
-//
-//it("0.1.7: decode helpers", function (done) {
-//    compareStr('./test/data/test_7.html', './test/data/test_7.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//       done();
-//    });
-//});
-//
-//it("0.1.8: > & < in templates", function (done) {
-//    compareStr('./test/data/test_8.html', './test/data/test_8.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//        done();
-//    });
-//});
-//
-//it("0.1.9: text format", function (done) {
-//    compareStr('./test/data/test_9.html', './test/data/test_9.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//        done();
-//    });
-//});
-//
-//it("0.1.10: attribute with link & format", function (done) {
-//    compareStr('./test/data/test_10.html', './test/data/test_10.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//        done();
-//    });
-//});
-//
-//it("0.1.11: html5 attributes", function (done) {
-//    compareStr('./test/data/test_11.html', './test/data/test_11.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//        done();
-//    });
-//});
-//
-//it("0.1.12: plain html", function (done) {
-//    compareStr('./test/data/test_12.html', './test/data/test_12.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//        done();
-//    });
-//});
-//
-//it("0.1.13: empty attribute value", function (done) {
-//    compareStr('./test/data/test_13.html', './test/data/test_13.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//        done();
-//    });
-//});
-//
-//it("0.1.14: empty attribute value in helper", function (done) {
-//    compareStr('./test/data/test_14.html', './test/data/test_14.txt', function (testStr, resultStr) {
-//        testStr.should.be.equal(resultStr);
-//        done();
-//    });
-//});
-
-//
-//it("0.1.2: plain html", function () {
-//    var html = fs.readFileSync('./test/data/test_10.html').toString();
-//    var template = itemplate.compile(html, true, 'myFn');
-//    console.log(template.toString());
-//});
-
 describe("DOM Tests", function () {
     var container;
 
@@ -74,27 +10,8 @@ describe("DOM Tests", function () {
         document.body.removeChild(container);
     });
 
-    it("0.1.1: inputs", function () {
-        var template = itemplate.compile(document.querySelector('#test-1').textContent, IncrementalDOM);
-        IncrementalDOM.patch(container, template);
-
-        var inputs = container.querySelectorAll('input');
-        expect(inputs.length).to.equal(5);
-    });
-
-    it("0.1.2: inputs attributes", function () {
-        var template = itemplate.compile(document.querySelector('#test-1').textContent, IncrementalDOM);
-        IncrementalDOM.patch(container, template);
-
-        var input = container.querySelector('#readonly-input');
-        expect(input.hasAttribute('readonly')).to.equal(true);
-        expect(input.getAttribute('type')).to.equal('text');
-        expect(input.getAttribute('name')).to.equal('text-2');
-        expect(input.getAttribute('placeholder')).to.equal('some name');
-    });
-
-    it("0.1.3: plain html", function () {
-        var template = itemplate.compile(document.querySelector('#test-2').textContent, IncrementalDOM);
+    it("0.0.1: plain html", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_0_1').textContent, IncrementalDOM);
         var innerHTML = '<div class="title">Title</div><ul><li class="row even">John Smith<em>*</em></li>' +
             '<li class="row">Mark Smith</li></ul><p style="font-size: 12px; "><em>* Olympic gold medalist</em></p>';
 
@@ -103,8 +20,53 @@ describe("DOM Tests", function () {
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
-    it("0.1.4: expressions <%= %>, <%- %>", function () {
-        var template = itemplate.compile(document.querySelector('#test-3').textContent, IncrementalDOM);
+    it("0.0.2: plain html - attributes", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_0_2').textContent, IncrementalDOM);
+        var innerHTML = '<div class="box" my-attr="my-attr"><span>some text</span></div>' +
+            '<div my-attr="" class="box"><span>some text</span></div>' +
+            '<div my-attr="some-value" class="box"><span>some text</span></div>';
+
+        IncrementalDOM.patch(container, template);
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.0.3: plain html", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_0_3').textContent, IncrementalDOM);
+        var innerHTML = '<div>Some text<div class="my_class">Other text</div>' +
+            '<pre class="lang">some codes "&lt;" and "&amp;" \'.</pre><code>my code</code>' +
+            '<x-tag>My custom tag ;-)</x-tag></div>';
+
+        IncrementalDOM.patch(container, template);
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.1.1: open inputs", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_1_1').textContent, IncrementalDOM);
+        IncrementalDOM.patch(container, template);
+
+        var input = container.querySelector('input');
+        expect(input).to.not.equal(null);
+        expect(input.hasAttribute('readonly')).to.equal(true);
+        expect(input.getAttribute('type')).to.equal('text');
+        expect(input.getAttribute('name')).to.equal('text-2');
+        expect(input.getAttribute('placeholder')).to.equal('some name');
+    });
+
+    it("0.1.2: close inputs", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_1_2').textContent, IncrementalDOM);
+        IncrementalDOM.patch(container, template);
+
+        var input = container.querySelector('input');
+        expect(input).to.not.equal(null);
+        expect(input.hasAttribute('readonly')).to.equal(true);
+        expect(input.getAttribute('type')).to.equal('text');
+        expect(input.getAttribute('name')).to.equal('text-2');
+        expect(input.getAttribute('placeholder')).to.equal('some name');
+    });
+
+
+    it("0.2.1: inner expressions <%= %>, <%- %>", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_2_1').textContent, IncrementalDOM);
         var data = {
             isTrue: true,
             name: 'name',
@@ -124,8 +86,8 @@ describe("DOM Tests", function () {
         expect(container.querySelector('._5').textContent).to.equal('testlistTitletestlistTitle');
     });
 
-    it("0.1.5: embedded js", function () {
-        var template = itemplate.compile(document.querySelector('#test-4').textContent, IncrementalDOM);
+    it("0.2.2: embedded js", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_2_2').textContent, IncrementalDOM);
         var data = {
             listTitle: "Olympic Volleyball Players",
             listItems: [
@@ -157,8 +119,8 @@ describe("DOM Tests", function () {
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
-    it("0.1.6: decode accessory", function () {
-        var template = itemplate.compile(document.querySelector('#test-5').textContent, IncrementalDOM);
+    it("0.2.3: decode accessory", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_2_3').textContent, IncrementalDOM);
         var data = {
             listTitle: 'listTitle'
         };
@@ -172,8 +134,8 @@ describe("DOM Tests", function () {
     });
 
 
-    it("0.1.7: static keys", function () {
-        var template = itemplate.compile(document.querySelector('#test-6').textContent, IncrementalDOM);
+    it("0.3.1: static keys", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_3_1').textContent, IncrementalDOM);
         var data = {
             array: [
                 {id: 0, value: 0},
@@ -201,8 +163,8 @@ describe("DOM Tests", function () {
         expect(container.querySelectorAll('ul:nth-child(2) li')[0]).to.equal(nonStaticLI[0]);
     });
 
-    it("0.1.8: static arrays", function () {
-        var template = itemplate.compile(document.querySelector('#test-7').textContent, IncrementalDOM);
+    it("0.3.2: static arrays", function () {
+        var template = itemplate.compile(document.querySelector('#test-0_3_2').textContent, IncrementalDOM);
         IncrementalDOM.patch(container, template);
 
         var firstEl = container.querySelector('#id_1');
@@ -211,4 +173,59 @@ describe("DOM Tests", function () {
         expect(firstEl.style.border).to.equal(secondEl.style.border);
         expect(firstEl.className).to.equal(secondEl.className);
     });
+
+    it("0.3.3: helpers", function () {
+        itemplate.registerHelper('my-input', function (attr) {
+            IncrementalDOM.elementVoid('input', null, null, 'class', attr.class);
+        });
+
+
+        var template = itemplate.compile(document.querySelector('#test-0_3_3').textContent, IncrementalDOM);
+        IncrementalDOM.patch(container, template);
+
+        var input = container.querySelector('.my-class');
+        expect(input).to.not.equal(null);
+    });
+
+    it("0.3.4: wrapped helpers", function () {
+        itemplate.registerHelper('my-div', function (attr, render) {
+            IncrementalDOM.elementOpen('div', null, null, 'class', attr.class);
+            render();
+            IncrementalDOM.elementClose('div');
+        });
+
+        var innerHTML = '<div class="my-wrapper-class"><input class="my-class"></div>';
+        var template = itemplate.compile(document.querySelector('#test-0_3_4').textContent, IncrementalDOM);
+        IncrementalDOM.patch(container, template);
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.3.5: wrapped helpers", function () {
+        itemplate.registerHelper('my-section', function (attr, render) {
+            IncrementalDOM.elementOpen('section');
+            render();
+            IncrementalDOM.elementClose('section');
+        });
+
+        var innerHTML = '<section><div class="my-wrapper-class"><input class="my-class"></div></section>';
+        var template = itemplate.compile(document.querySelector('#test-0_3_5').textContent, IncrementalDOM);
+        IncrementalDOM.patch(container, template);
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.4.1: static refs", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_4_1').textContent);
+        var refs;
+
+        IncrementalDOM.patch(container, function(){
+            refs = templateFn.call({}, {}, IncrementalDOM);
+        });
+
+        expect(container.querySelector('section')).to.equal(refs.section);
+        expect(container.querySelector('div')).to.equal(refs.div);
+        expect(container.querySelector('input')).to.equal(refs.input);
+    });
+
 });
