@@ -5,7 +5,7 @@ var Command = { // incremental DOM commands
     elementVoid: 'elementVoid("',
     elementClose: 'elementClose("',
     saveRef: function(name, command) {
-        return 'refs.'+ name +' = ' + command;
+        return 'refs['+ name +'] = ' + command;
     },
     text: 'text(',
     close: ');\n'

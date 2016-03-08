@@ -750,7 +750,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    if (refName) {
 	        // i.e. ref[refName] = elementOpen(...)
-	        command = Command.saveRef(camelCase(refName), command);
+	        command = Command.saveRef(camelCase(decodeAccessory(refName, true).value), command);
 	    }
 
 	    stack.push(command + tag + quote + strKey + strAttrs + Command.close);
@@ -888,7 +888,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    elementVoid: 'elementVoid("',
 	    elementClose: 'elementClose("',
 	    saveRef: function(name, command) {
-	        return 'refs.'+ name +' = ' + command;
+	        return 'refs['+ name +'] = ' + command;
 	    },
 	    text: 'text(',
 	    close: ');\n'

@@ -156,7 +156,7 @@ function writeCommand(command, tag, attributes) {
 
     if (refName) {
         // i.e. ref[refName] = elementOpen(...)
-        command = Command.saveRef(camelCase(refName), command);
+        command = Command.saveRef(camelCase(decodeAccessory(refName, true).value), command);
     }
 
     stack.push(command + tag + quote + strKey + strAttrs + Command.close);

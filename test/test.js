@@ -230,6 +230,23 @@ describe("DOM Tests", function () {
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
+    it("0.3.7: several wrappers ", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_3_7').textContent);
+        var context = {
+            div: 'div',
+            input: 'input'
+        };
+        var innerHTML = '<section><div class="div"><input class="input"></div></section>' +
+            '<section><div>test</div><div class="a"><div class="class">test class</div>' +
+            '<input class="b"></div></section>';
+
+        IncrementalDOM.patch(container, function (data) {
+            templateFn.call(context, data, IncrementalDOM, itemplate.helpers);
+        });
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
     it("0.4.1: static refs", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_4_1').textContent);
         var refs;
@@ -241,6 +258,19 @@ describe("DOM Tests", function () {
         expect(container.querySelector('section')).to.equal(refs.section);
         expect(container.querySelector('div')).to.equal(refs.div);
         expect(container.querySelector('input')).to.equal(refs.input);
+    });
+
+    it("0.4.2: dynamic refs", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_4_2').textContent);
+        var refs;
+
+        IncrementalDOM.patch(container, function () {
+            refs = templateFn(null, IncrementalDOM);
+        });
+
+        expect(container.querySelector('section')).to.equal(refs.section_1);
+        expect(container.querySelector('div')).to.equal(refs.myDiv);
+        expect(container.querySelector('input')).to.equal(refs.myInput);
     });
 
 });

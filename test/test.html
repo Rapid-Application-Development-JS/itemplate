@@ -182,11 +182,36 @@
         </my-section>
     </script>
 
+    <script type="text/html" id="test-0_3_7">
+        <my-section>
+            <my-div class="<%= this.div %>">
+                <my-input class="<%= this.input %>"/>
+            </my-div>
+        </my-section>
+
+        <% var _this = {div: "a", input: "b"};%>
+        <my-section>
+            <div>test</div>
+            <my-div class="<%= _this.div %>">
+                <div class="class">test class</div>
+                <my-input class="<%= _this.input %>"/>
+            </my-div>
+        </my-section>
+    </script>
+
     <!--refs-->
     <script type="text/html" id="test-0_4_1">
         <section ref="section">
             <div ref="div" class="my-wrapper-class">
                 <input ref="input" class="my-class"/>
+            </div>
+        </section>
+    </script>
+
+    <script type="text/html" id="test-0_4_2">
+        <section ref="<%= 'section_' + 1 %>">
+            <div ref="<%= 'my'+'-div' %>" class="my-wrapper-class">
+                <input ref="<%= 'my-input' %>" class="my-class"/>
             </div>
         </section>
     </script>
