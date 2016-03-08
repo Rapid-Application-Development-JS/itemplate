@@ -215,12 +215,27 @@ describe("DOM Tests", function () {
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
+    it("0.3.6: helpers context ", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_3_6').textContent);
+        var context = {
+            div: 'div',
+            input: 'input'
+        };
+        var innerHTML = '<section><div class="div"><input class="input"></div></section>';
+
+        IncrementalDOM.patch(container, function (data) {
+            templateFn.call(context, data, IncrementalDOM, itemplate.helpers);
+        });
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
     it("0.4.1: static refs", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_4_1').textContent);
         var refs;
 
-        IncrementalDOM.patch(container, function(){
-            refs = templateFn.call({}, {}, IncrementalDOM);
+        IncrementalDOM.patch(container, function () {
+            refs = templateFn(null, IncrementalDOM);
         });
 
         expect(container.querySelector('section')).to.equal(refs.section);

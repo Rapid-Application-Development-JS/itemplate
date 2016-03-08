@@ -91,6 +91,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	};
 
+	Object.defineProperty(itemplate, 'helpers', {
+	    get: function () {
+	        return helpers;
+	    },
+	    set: function () {
+	    }
+	});
+
 	module.exports = itemplate;
 
 /***/ },
@@ -757,17 +765,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	var helperOpen = function (helperName, attrs) {
-	    stack.push(
-	        '(function(){' +
-	        'helpers["'+helperName+'"]('+decodeAttrs(attrs)+', render);' +
-	        'function render(){'
-	    );
+	    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function (){');
 	};
 	var helperClose = function () {
-	    stack.push(
-	        '} ' +
-	        '}());'
-	    );
+	    stack.push('}.bind(this));');
 	};
 
 	function isHelperTag(tag) {

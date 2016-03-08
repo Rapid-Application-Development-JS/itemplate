@@ -35,4 +35,12 @@ var itemplate = {
     }
 };
 
+Object.defineProperty(itemplate, 'helpers', {
+    get: function () {
+        return helpers;
+    },
+    set: function () {
+    }
+});
+
 module.exports = itemplate;
