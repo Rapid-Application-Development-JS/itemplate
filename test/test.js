@@ -273,4 +273,15 @@ describe("DOM Tests", function () {
         expect(container.querySelector('input')).to.equal(refs.myInput);
     });
 
+    it("0.5.1: dynamic refs", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_5_1').textContent);
+
+        IncrementalDOM.patch(container, function () {
+            templateFn(null, IncrementalDOM);
+        });
+
+        console.log(container.innerHTML)
+    });
+
+
 });

@@ -62,7 +62,14 @@ function decodeAccessory(string, force) {
 }
 
 function formatText(text) {
-    return text.trim().replace(/&#(\d+);/g, function (match, dec) { return String.fromCharCode(dec); });
+    return text.trim()
+        .replace(/&#(\d+);/g, function (match, dec) {
+            return String.fromCharCode(dec);
+        })
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"');
 }
 
 function prepareKey(command, attributes, useKeyCommand) {
