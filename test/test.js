@@ -247,6 +247,21 @@ describe("DOM Tests", function () {
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
+    it("0.3.8: data from parent wrapper", function () {
+        itemplate.registerHelper('my-div', function (attr, render) {
+            IncrementalDOM.elementOpen('div', null, null, 'class', attr.class);
+            render({'class': 'data from parent component'});
+            IncrementalDOM.elementClose('div');
+        });
+
+        var innerHTML = '<div class="my-wrapper-class"><input class="data from parent component"></div>';
+        var template = itemplate.compile(document.querySelector('#test-0_3_8').textContent, IncrementalDOM);
+        IncrementalDOM.patch(container, template);
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+
     it("0.4.1: static refs", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_4_1').textContent);
         var refs;
@@ -273,14 +288,16 @@ describe("DOM Tests", function () {
         expect(container.querySelector('input')).to.equal(refs.myInput);
     });
 
-    it("0.5.1: dynamic refs", function () {
+    it("0.5.1: html escape", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_5_1').textContent);
+        var text = '<dropdown items="<%= this.dropDownItems %>" onclick="<%= this.onDropDownClick %>"' +
+            ' type="danger"></dropdown>';
 
         IncrementalDOM.patch(container, function () {
             templateFn(null, IncrementalDOM);
         });
 
-        console.log(container.innerHTML)
+        expect(container.textContent).to.equal(text);
     });
 
 

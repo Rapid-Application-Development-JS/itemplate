@@ -22,6 +22,7 @@ var _options = {
     staticArray: 'static-array',
     nonStaticAttributes: ['id', 'name'],
     parameterName: 'data',
+    parentParameterName: 'parent',
     // tags parse rules
     textSaveTags: ['pre', 'code'],
     voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',

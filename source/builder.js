@@ -178,7 +178,8 @@ function writeText(text) {
 }
 
 var helperOpen = function (helperName, attrs) {
-    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function (){');
+    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function ('
+        + _options.parentParameterName + '){');
 };
 var helperClose = function () {
     stack.push('}.bind(this));');

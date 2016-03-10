@@ -199,6 +199,13 @@
         </my-section>
     </script>
 
+    <!--parent data-->
+    <script type="text/html" id="test-0_3_8">
+        <my-div class="my-wrapper-class">
+            <my-input class="<%= parent.class %>"/>
+        </my-div>
+    </script>
+
     <!--refs-->
     <script type="text/html" id="test-0_4_1">
         <section ref="section">
@@ -219,8 +226,7 @@
     <!--code format-->
     <script type="text/html" id="test-0_5_1">
         <div>
-            &lt;dropdown items=&quot;&lt;%= this.dropDownItems %&gt;&quot; onclick=&quot;&lt;%= this.onDropDownClick %&gt;&quot;
-            type=&quot;danger&quot;&gt;&lt;/dropdown&gt;
+            &lt;dropdown items=&quot;&lt;%= this.dropDownItems %&gt;&quot; onclick=&quot;&lt;%= this.onDropDownClick %&gt;&quot; type=&quot;danger&quot;&gt;&lt;/dropdown&gt;
         </div>
     </script>
 

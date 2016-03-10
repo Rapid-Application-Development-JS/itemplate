@@ -129,6 +129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    staticArray: 'static-array',
 	    nonStaticAttributes: ['id', 'name'],
 	    parameterName: 'data',
+	    parentParameterName: 'parent',
 	    // tags parse rules
 	    textSaveTags: ['pre', 'code'],
 	    voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
@@ -772,7 +773,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	var helperOpen = function (helperName, attrs) {
-	    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function (){');
+	    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function ('
+	        + _options.parentParameterName + '){');
 	};
 	var helperClose = function () {
 	    stack.push('}.bind(this));');
