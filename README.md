@@ -173,15 +173,8 @@ Where:
 * **template** (*interpolate*, *escape*, *evaluate*) - regular expression of your templates; you may change them, so that the compiler will process your template syntax. 
 > Take note that compilation is carried out in the following order: *interpolate*, *escape*, *evaluate*. In further versions we plan to provide an opportunity of changing the sequence of template processing.
 
-* **escape**, **MAP** - regular expression and MAP for processing the *escape* template in the following way:
-* 
-```javascript
-function escapeHTML(s) {
-    return s.replace(options.escape, function (c){
-        return options.MAP[c];
-    });
-}
-```
+* **escape**, **MAP** - regular expression and MAP for processing the html escaping expression. 
+
 * **accessory** (*open*, *close*) - service lines for processing *interpolate*, *escape* templates; it's better not to modify them.
 * <a name="static_attr"></a>**staticKey** - attribute name for static attributes array generation in current tag. See [static attributes](#static). 
 
@@ -207,6 +200,13 @@ By default the options have the following values:
         open: '{%',
         close: '%}'
     },
+    escape: /(&amp;|&lt;|&gt;|&quot;)/g,
+    MAP: {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"'
+    },
     // build options
     emptyString: true,
     staticKey: 'key',
@@ -227,7 +227,7 @@ You may modify any option.
 ###<a name="static"></a>Static attributes
 Arrays of static attributes are used to [save memory](http://google.github.io/incremental-dom/#rendering-dom/statics-array).
 
-For generation of a static array, you should select the `static-key` attribute from element attriibutes and add it to the template tag.
+For generation of a static array, you should select the `static-array` attribute from element attriibutes and add it to the template tag.
 
 The value of this attribute will become the name of the static array:
 
@@ -265,7 +265,6 @@ It's important to understand that arrays of static attributes are unqiue for eve
 > Take note that:
 > 
 * if you use an array of static attributes, a **[key](http://google.github.io/incremental-dom/#api/elementOpen)** for this element will be generated automatically.
-* an array of static attributes is generated automatically from all element attributes, in which dynamic data from JS is not used. That's why if there is an identical array name, all elements with the same name of the array of static attributes will have the same number of attributes with the same value. That is: with the identical array of static attributes in different elements, you will not be able to add one more static attribute to any specific element. We are planning to correct this as soon as possible.
 
 ###<a name="helpers"></a>Helpers
 There is an option of injecting JS functions as a part of the compiled template.
