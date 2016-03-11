@@ -316,14 +316,29 @@ describe("iTemplate Tests", function () {
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
-    it("0.3.8: data from parent wrapper", function () {
-        // load helper template
+    it("0.3.8.1: data from parent wrapper (main function type)", function () {
+        // You can compile helper templates only by the first type of functions
         var helperTemplate = itemplate.compile(document.querySelector('#template-1').textContent, IncrementalDOM);
         itemplate.registerHelper('parent-div', helperTemplate);
 
         var innerHTML = '<div class="my-wrapper-class"><input class="obj from parent"></div>';
         var templateFn = itemplate.compile(document.querySelector('#test-0_3_8').textContent, IncrementalDOM);
         IncrementalDOM.patch(container, templateFn);
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.3.8.2: data from parent wrapper (second function type)", function () {
+        // You can compile helper templates only by the first type of functions
+        var helperTemplate = itemplate.compile(document.querySelector('#template-1').textContent, IncrementalDOM);
+        itemplate.registerHelper('parent-div', helperTemplate);
+
+        var innerHTML = '<div class="my-wrapper-class"><input class="obj from parent"></div>';
+        var templateFn = itemplate.compile(document.querySelector('#test-0_3_8').textContent);
+
+        IncrementalDOM.patch(container, function (data) {
+            templateFn(data, IncrementalDOM, itemplate.helpers);
+        });
 
         expect(container.innerHTML).to.equal(innerHTML);
     });
