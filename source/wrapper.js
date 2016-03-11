@@ -4,8 +4,8 @@ var Command = { // incremental DOM commands
     elementOpen: 'elementOpen("',
     elementVoid: 'elementVoid("',
     elementClose: 'elementClose("',
-    saveRef: function(name, command) {
-        return 'refs['+ name +'] = ' + command;
+    saveRef: function (name, command) {
+        return 'refs[' + name + '] = ' + command;
     },
     text: 'text(',
     close: ');\n'
@@ -53,10 +53,10 @@ function createWrapper() {
         var body = variables + wrapFn(stack.join(glue));
 
         if (_library) {
-            body = 'return function(' + _options.parameterName + '){' + body + '};';
+            body = 'return function(' + _options.parameterName + ', ' + _options.renderContentFnName + '){' + body + '};';
             resultFn = (new Function('lib', 'helpers', body))(_library, _helpers);
         } else {
-            resultFn = new Function(_options.parameterName, 'lib', 'helpers', body );
+            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _options.renderContentFnName, body);
         }
         return resultFn;
     }

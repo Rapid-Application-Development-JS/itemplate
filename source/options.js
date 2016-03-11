@@ -16,6 +16,13 @@ var _options = {
         open: '{%',
         close: '%}'
     },
+    escape: /(&amp;|&lt;|&gt;|&quot;)/g,
+    MAP: {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"'
+    },
     // build options
     emptyString: true,
     staticKey: 'key',
@@ -23,6 +30,7 @@ var _options = {
     nonStaticAttributes: ['id', 'name'],
     parameterName: 'data',
     parentParameterName: 'parent',
+    renderContentFnName: 'content',
     // tags parse rules
     textSaveTags: ['pre', 'code'],
     voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',

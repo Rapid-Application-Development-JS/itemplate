@@ -66,10 +66,9 @@ function formatText(text) {
         .replace(/&#(\d+);/g, function (match, dec) {
             return String.fromCharCode(dec);
         })
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"');
+        .replace(_options.escape, function (m) {
+            return _options.MAP[m];
+        });
 }
 
 function prepareKey(command, attributes, useKeyCommand) {

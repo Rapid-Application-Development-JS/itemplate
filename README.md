@@ -189,26 +189,37 @@ function escapeHTML(s) {
 By default the options have the following values:
 
 ```javascript
-{
-    parameterName: "data",
+ {
+    BREAK_LINE: /(\r\n|\n|\r)\s{0,}/gm,
+    // prepare options
     template: {
         evaluate: /<%([\s\S]+?)%>/g,
         interpolate: /<%=([\s\S]+?)%>/g,
         escape: /<%-([\s\S]+?)%>/g
     },
-    escape: /[&<>]/g,
-    MAP: {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
+    order: ['interpolate', 'escape', 'evaluate'],
+    evaluate: {
+        name: 'script',
+        open: '<script>',
+        close: '</script>'
     },
     accessory: {
-        open: "{%",
-        close: "%}"
+        open: '{%',
+        close: '%}'
     },
-    staticKey: "key"
+    // build options
+    emptyString: true,
+    staticKey: 'key',
+    staticArray: 'static-array',
+    nonStaticAttributes: ['id', 'name'],
+    parameterName: 'data',
+    parentParameterName: 'parent',
+    renderContentFnName: 'content',
+    // tags parse rules
+    textSaveTags: ['pre', 'code'],
+    voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
+        'param', 'source', 'track', 'wbr'],
+    debug: false
 }
 ```
 You may modify any option.

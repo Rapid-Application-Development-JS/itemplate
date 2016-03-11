@@ -123,6 +123,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        open: '{%',
 	        close: '%}'
 	    },
+	    escape: /(&amp;|&lt;|&gt;|&quot;)/g,
+	    MAP: {
+	        '&amp;': '&',
+	        '&lt;': '<',
+	        '&gt;': '>',
+	        '&quot;': '"'
+	    },
 	    // build options
 	    emptyString: true,
 	    staticKey: 'key',
@@ -130,6 +137,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    nonStaticAttributes: ['id', 'name'],
 	    parameterName: 'data',
 	    parentParameterName: 'parent',
+	    renderContentFnName: 'content',
 	    // tags parse rules
 	    textSaveTags: ['pre', 'code'],
 	    voidRequireTags: ['input', 'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'keygen', 'link', 'meta',
@@ -661,10 +669,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        .replace(/&#(\d+);/g, function (match, dec) {
 	            return String.fromCharCode(dec);
 	        })
-	        .replace(/&amp;/g, '&')
-	        .replace(/&lt;/g, '<')
-	        .replace(/&gt;/g, '>')
-	        .replace(/&quot;/g, '"');
+	        .replace(_options.escape, function (m) {
+	            return _options.MAP[m];
+	        });
 	}
 
 	function prepareKey(command, attributes, useKeyCommand) {
@@ -896,8 +903,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    elementOpen: 'elementOpen("',
 	    elementVoid: 'elementVoid("',
 	    elementClose: 'elementClose("',
-	    saveRef: function(name, command) {
-	        return 'refs['+ name +'] = ' + command;
+	    saveRef: function (name, command) {
+	        return 'refs[' + name + '] = ' + command;
 	    },
 	    text: 'text(',
 	    close: ');\n'
@@ -945,10 +952,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var body = variables + wrapFn(stack.join(glue));
 
 	        if (_library) {
-	            body = 'return function(' + _options.parameterName + '){' + body + '};';
+	            body = 'return function(' + _options.parameterName + ', ' + _options.renderContentFnName + '){' + body + '};';
 	            resultFn = (new Function('lib', 'helpers', body))(_library, _helpers);
 	        } else {
-	            resultFn = new Function(_options.parameterName, 'lib', 'helpers', body );
+	            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _options.renderContentFnName, body);
 	        }
 	        return resultFn;
 	    }
