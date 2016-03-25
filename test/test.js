@@ -173,6 +173,16 @@ describe("iTemplate Tests", function () {
         expect(container.querySelector('._5').getAttribute('attr')).to.equal('testlistTitletestlistTitle');
     });
 
+    it("0.2.4: 'if decode accessory", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_2_4').textContent, IncrementalDOM);
+        var data = {
+            listTitle: 'listTitle'
+        };
+        IncrementalDOM.patch(container, templateFn, data);
+
+        expect(container.querySelector('._1').getAttribute('attr')).to.equal('a');
+    });
+
 
     it("0.3.1: static keys", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_3_1').textContent, IncrementalDOM);
