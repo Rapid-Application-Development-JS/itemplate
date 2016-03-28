@@ -12,10 +12,10 @@ var localComponentNames = []; // keys for local helpers
 
 var empty = '', quote = '"', comma = ', "', removable = '-%%&&##__II-'; // auxiliary
 
-var nestingLevel = 0;
+var nestingLevelInfo = {level: 0, skip: -1};
 
 function isRootNode() {
-    return nestingLevel === 0;
+    return nestingLevelInfo.level === 0;
 }
 
 function makeKey() {
@@ -72,7 +72,7 @@ function formatText(text) {
 }
 
 function prepareKey(command, attributes, useKeyCommand) {
-    var result = empty; var decode; var stub;
+    var result = empty, decode, stub;
     if ((command === Command.elementOpen || command === Command.elementVoid)) {
 
         if (attributes && attributes.hasOwnProperty(_options.staticKey)) {
@@ -90,12 +90,18 @@ function prepareKey(command, attributes, useKeyCommand) {
 }
 
 function prepareAttr(command, attributes) {
-    var result = empty, attr, decode, arrayStaticKey = false;
+    var result = empty, attr, decode, arrayStaticKey = false, isSkipped = false, skipCommand;
     if ((command === Command.elementOpen || command === Command.elementVoid) && Object.keys(attributes).length > 0) {
         if (attributes && attributes.hasOwnProperty(_options.staticArray)) {
             arrayStaticKey = attributes[_options.staticArray] || makeKey();
             staticArraysHolder[arrayStaticKey] = staticArraysHolder[arrayStaticKey] || {};
             delete attributes[_options.staticArray];
+        }
+
+        if (attributes && attributes.hasOwnProperty(_options.skipAttr)) {
+            isSkipped = true;
+            skipCommand = Command.startSkipContent(decodeAccessory(attributes[_options.skipAttr], true).value);
+            delete attributes[_options.skipAttr];
         }
 
         result = arrayStaticKey || null;
@@ -119,7 +125,7 @@ function prepareAttr(command, attributes) {
             }
         }
     }
-    return result;
+    return {value: result, isSkipped: isSkipped, skip: skipCommand};
 }
 
 function unwrapStaticArrays(holder) {
@@ -146,7 +152,7 @@ function decodeAttrs(obj) {
 }
 
 function camelCase(input) {
-    return input.replace(/\s/g, '').replace(/-(.)/g, function(match, group1) {
+    return input.replace(/\s/g, '').replace(/-(.)/g, function (match, group1) {
         return group1.toUpperCase();
     });
 }
@@ -165,7 +171,13 @@ function writeCommand(command, tag, attributes) {
         command = Command.saveRef(camelCase(decodeAccessory(refName, true).value), command);
     }
 
-    stack.push(command + tag + quote + strKey + strAttrs + Command.close);
+    stack.push(command + tag + quote + strKey + strAttrs.value + Command.close);
+
+    // save skipped
+    if (strAttrs.isSkipped) {
+        stack.push(strAttrs.skip);
+        nestingLevelInfo.skip = nestingLevelInfo.level;
+    }
 }
 
 function writeText(text) {
@@ -203,12 +215,13 @@ function writeAndCloseOpenState(isClosed) {
             isShouldClose = isClosed;
         } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
             writeCommand(Command.elementVoid, state.tag, state.attributes, isRoot);
+            nestingLevelInfo.level--;
             isShouldClose = false;
         } else if (state.tag !== _options.evaluate.name) { // standard mode
             writeCommand(Command.elementOpen, state.tag, state.attributes, isRoot);
         } // if we write code, do nothing
 
-        nestingLevel++;
+        nestingLevelInfo.level++;
     }
 
     // clear builder state for next tag
@@ -231,7 +244,7 @@ Builder.prototype.reset = function () {
         attributes: {}
     };
     staticArraysHolder = {};
-    nestingLevel = 0;
+    nestingLevelInfo = {level: 0, skip: -1};
 };
 
 Builder.prototype.set = function (helpersKeys, localNames) {
@@ -249,16 +262,19 @@ Builder.prototype.write = function (command) {
 
                 // close tag case
                 if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name) {
-                    if (isHelperTag(tag)) {
-                        helperClose();
-                        nestingLevel--;
-                    } else {
-                        writeCommand(Command.elementClose, tag);
-                        nestingLevel--;
+                    nestingLevelInfo.level--;
+                    
+                    if (nestingLevelInfo.level === nestingLevelInfo.skip) { // write end skip functionality
+                        stack.push(Command.endSkipContent);
+                        nestingLevelInfo.skip = -1;
                     }
+
+                    if (isHelperTag(tag))
+                        helperClose();
+                    else
+                        writeCommand(Command.elementClose, tag);
                 }
             } else {
-
                 // open tag case
                 writeAndCloseOpenState();
                 state.tag = tag;

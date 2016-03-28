@@ -8,7 +8,15 @@ var Command = { // incremental DOM commands
         return 'refs[' + name + '] = ' + command;
     },
     text: 'text(',
-    close: ');\n'
+    close: ');\n',
+    startSkipContent: function (flag) {
+        // compile static values
+        flag = (flag === '"false"') ? false : flag;
+        flag = (flag === '"true"') ? true : flag;
+
+        return 'if(' + flag + '){lib.skip();}else{';
+    },
+    endSkipContent: '}'
 };
 
 function createWrapper() {

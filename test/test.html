@@ -240,6 +240,31 @@
         </div>
     </script>
 
+    <!--skip functionality-->
+    <script type="text/html" id="test-0_6_1">
+        <div skip="true">
+            <div>A</div>
+        </div>
+        <div skip="false">
+            <div>A</div>
+        </div>
+        <div skip="<%= true %>">
+            <div><span>A</span>A</div>
+        </div>
+        <div skip="<%= false %>">
+            <div></div>
+        </div>
+        <div skip="true">
+            <input type="text">
+        </div>
+    </script>
+
+    <script type="text/html" id="test-0_6_2">
+        <div skip="<%= data.skip %>" ref="container">
+            <div>AAA</div>
+        </div>
+    </script>
+
 </div>
 
 <!--test functionality-->

@@ -25,6 +25,7 @@ var _options = {
     },
     // build options
     emptyString: true,
+    skipAttr: 'skip',
     staticKey: 'key',
     staticArray: 'static-array',
     nonStaticAttributes: ['id', 'name'],

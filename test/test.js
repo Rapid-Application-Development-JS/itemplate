@@ -404,4 +404,33 @@ describe("iTemplate Tests", function () {
         expect(container.textContent).to.equal(text);
     });
 
+    it("0.6.1: skip syntax's", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_6_1').textContent);
+        var innerHTML = '<div></div><div><div>A</div></div><div></div><div><div></div></div><div></div>';
+
+        IncrementalDOM.patch(container, function () {
+            templateFn(null, IncrementalDOM);
+        });
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+    
+    it("0.6.2: skip functionality 'false'", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_6_2').textContent, IncrementalDOM);
+        var innerHTML = '<div><div>AAA</div></div>';
+
+        IncrementalDOM.patch(container, templateFn, {skip: false});
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.6.3: skip functionality 'true'", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_6_2').textContent, IncrementalDOM);
+        var innerHTML = '<div></div>';
+
+        IncrementalDOM.patch(container, templateFn, {skip: true});
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
 });
