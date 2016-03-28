@@ -433,4 +433,18 @@ describe("iTemplate Tests", function () {
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
+    it("0.6.4: nested skip functionality", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_6_4').textContent, IncrementalDOM);
+        var innerHTML = '<div><div><span>BBB</span></div><div>AAA</div></div>';
+        var afterModification = '<div><div><span>CCC</span></div><div>AAA</div></div>';
+
+        IncrementalDOM.patch(container, templateFn, {skipRoot: false, skipChild: false});
+        expect(container.innerHTML).to.equal(innerHTML);
+        
+        container.querySelector('span').innerHTML = 'CCC';
+
+        IncrementalDOM.patch(container, templateFn, {skipRoot: true, skipChild: false});
+        expect(container.innerHTML).to.equal(afterModification);
+    });
+
 });

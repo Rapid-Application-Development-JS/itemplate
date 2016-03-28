@@ -260,7 +260,16 @@
     </script>
 
     <script type="text/html" id="test-0_6_2">
-        <div skip="<%= data.skip %>" ref="container">
+        <div skip="<%= data.skip %>">
+            <div>AAA</div>
+        </div>
+    </script>
+
+    <script type="text/html" id="test-0_6_4">
+        <div skip="<%= data.skipRoot %>">
+            <div skip="<%= data.skipChild %>">
+                <span>BBB</span>
+            </div>
             <div>AAA</div>
         </div>
     </script>

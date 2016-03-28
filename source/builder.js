@@ -12,7 +12,7 @@ var localComponentNames = []; // keys for local helpers
 
 var empty = '', quote = '"', comma = ', "', removable = '-%%&&##__II-'; // auxiliary
 
-var nestingLevelInfo = {level: 0, skip: -1};
+var nestingLevelInfo = {level: 0, skip: []};
 
 function isRootNode() {
     return nestingLevelInfo.level === 0;
@@ -176,7 +176,7 @@ function writeCommand(command, tag, attributes) {
     // save skipped
     if (strAttrs.isSkipped) {
         stack.push(strAttrs.skip);
-        nestingLevelInfo.skip = nestingLevelInfo.level;
+        nestingLevelInfo.skip.push(nestingLevelInfo.level);
     }
 }
 
@@ -244,7 +244,7 @@ Builder.prototype.reset = function () {
         attributes: {}
     };
     staticArraysHolder = {};
-    nestingLevelInfo = {level: 0, skip: -1};
+    nestingLevelInfo = {level: 0, skip: []};
 };
 
 Builder.prototype.set = function (helpersKeys, localNames) {
@@ -263,10 +263,11 @@ Builder.prototype.write = function (command) {
                 // close tag case
                 if (writeAndCloseOpenState(true) && tag !== _options.evaluate.name) {
                     nestingLevelInfo.level--;
-                    
-                    if (nestingLevelInfo.level === nestingLevelInfo.skip) { // write end skip functionality
+
+                    // write end skip functionality
+                    if (nestingLevelInfo.level === nestingLevelInfo.skip[nestingLevelInfo.skip.length - 1]) {
                         stack.push(Command.endSkipContent);
-                        nestingLevelInfo.skip = -1;
+                        nestingLevelInfo.skip.pop();
                     }
 
                     if (isHelperTag(tag))
