@@ -135,7 +135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    skipAttr: 'skip',
 	    staticKey: 'key',
 	    staticArray: 'static-array',
-	    nonStaticAttributes: ['id', 'name'],
+	    nonStaticAttributes: ['id', 'name', 'ref'],
 	    parameterName: 'data',
 	    parentParameterName: 'parent',
 	    renderContentFnName: 'content',
