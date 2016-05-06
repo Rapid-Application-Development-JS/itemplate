@@ -274,6 +274,37 @@
         </div>
     </script>
 
+    <script type="text/html" id="test-0_7_1">
+        <%
+            function repeat(attrs, content) {
+                var amount = parseInt(attrs.amount, 10);
+                for (var i = 0; i < amount; i++) {
+                    content(i);
+                }
+            }
+        %>
+        <ul>
+            <::repeat amount="2">
+                <li>item<%= ':' + parent %></li>
+            </::repeat>
+        </ul>
+    </script>
+
+    <script type="text/html" id="test-0_7_2">
+        <%
+            function context(attrs, content) {
+                content({
+                    clazz: attrs.my.clazz
+                    });
+            }
+        %>
+        <div>
+            <::context my="<%= this %>">
+                <span class="<%= parent.clazz %>"><%= this.name %></span>
+            </::context>
+        </div>
+    </script>
+
 </div>
 
 <!--test functionality-->

@@ -188,16 +188,22 @@ function writeText(text) {
     }
 }
 
-var helperOpen = function (helperName, attrs) {
-    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function ('
-        + _options.parentParameterName + '){');
-};
-var helperClose = function () {
-    stack.push('}.bind(this));');
-};
+function helperOpen(helperName, attrs) {
+    var fnName = 'helpers["' + helperName + '"]';
 
-function isHelperTag(tag) {
-    return localComponentNames.indexOf(tag) !== -1 || helpers.indexOf(tag) !== -1;
+    if (helperName.indexOf(_options.inlinePre) === 0) {
+        fnName = helperName.replace(_options.inlinePre, '');
+    }
+
+    stack.push(fnName + '(' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+}
+
+function helperClose() {
+    stack.push('}.bind(this));');
+}
+
+function isHelperTag(tagName) {
+    return localComponentNames.indexOf(tagName) !== -1 || helpers.indexOf(tagName) !== -1 || tagName.indexOf(_options.inlinePre) === 0;
 }
 
 // TODO: Clarify logic.

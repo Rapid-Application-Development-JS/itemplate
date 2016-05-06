@@ -447,4 +447,26 @@ describe("iTemplate Tests", function () {
         expect(container.innerHTML).to.equal(afterModification);
     });
 
+    it("0.7.1: inline helpers", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_7_1').textContent, IncrementalDOM);
+        var innerHTML = '<ul><li>item:0</li><li>item:1</li></ul>';
+        
+        IncrementalDOM.patch(container, templateFn);
+        
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.7.2: inline helpers context", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_7_2').textContent, IncrementalDOM);
+        var context = {
+            name: 'my-name',
+            clazz: 'my-class'
+        };
+        var innerHTML = '<div><span class="my-class">my-name</span></div>';
+        
+        IncrementalDOM.patch(container, templateFn.bind(context));
+        
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
 });

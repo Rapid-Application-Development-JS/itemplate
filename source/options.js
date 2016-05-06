@@ -29,6 +29,7 @@ var _options = {
     staticKey: 'key',
     staticArray: 'static-array',
     nonStaticAttributes: ['id', 'name', 'ref'],
+    inlinePre: '::',
     parameterName: 'data',
     parentParameterName: 'parent',
     renderContentFnName: 'content',
