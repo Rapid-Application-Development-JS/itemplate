@@ -136,7 +136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    staticKey: 'key',
 	    staticArray: 'static-array',
 	    nonStaticAttributes: ['id', 'name', 'ref'],
-	    inlinePre: '::',
+	    binderPre: '::',
 	    parameterName: 'data',
 	    parentParameterName: 'parent',
 	    renderContentFnName: 'content',
@@ -794,13 +794,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function helperOpen(helperName, attrs) {
-	    var fnName = 'helpers["' + helperName + '"]';
-
-	    if (helperName.indexOf(_options.inlinePre) === 0) {
-	        fnName = helperName.replace(_options.inlinePre, '');
-	    }
-
-	    stack.push(fnName + '(' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+	    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
 	}
 
 	function helperClose() {
@@ -808,7 +802,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function isHelperTag(tagName) {
-	    return localComponentNames.indexOf(tagName) !== -1 || helpers.indexOf(tagName) !== -1 || tagName.indexOf(_options.inlinePre) === 0;
+	    return localComponentNames.indexOf(tagName) !== -1 || helpers.indexOf(tagName) !== -1;
+	}
+
+	function binderOpen(helperName, attrs) {
+	    var fnName = helperName.replace(_options.binderPre, '');
+	    stack.push('binder(' + fnName + ',' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+	}
+
+	function binderClose() {
+	    stack.push('}.bind(this));');
+	}
+
+	function isTagBinded(tagName) {
+	    return tagName.indexOf(_options.binderPre) === 0;
 	}
 
 	// TODO: Clarify logic.
@@ -823,6 +830,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        if (isHelperTag(state.tag)) { // helper case
 	            helperOpen(state.tag, state.attributes);
+	            isShouldClose = isClosed;
+	        } else if (isTagBinded(state.tag)) {
+	            binderOpen(state.tag, state.attributes);
 	            isShouldClose = isClosed;
 	        } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
 	            writeCommand(Command.elementVoid, state.tag, state.attributes, isRoot);
@@ -883,6 +893,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	                    if (isHelperTag(tag))
 	                        helperClose();
+	                    else if (isTagBinded(tag))
+	                        binderClose();
 	                    else
 	                        writeCommand(Command.elementClose, tag);
 	                }
@@ -975,7 +987,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                'var currentElement = lib.currentElement;',
 	                'var text = lib.text;',
 	                'var elementVoid = lib.elementVoid;',
-	                'var refs = {};'
+	                'var refs = {};',
+	                'binder = binder || function(fn, data, content){ return fn(data, content); };'
 	            ].join(eol) + eol;
 
 	        for (var key in holder) { // collect static arrays for function
@@ -986,9 +999,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        if (_library) {
 	            body = 'return function(' + _options.parameterName + ', ' + _options.renderContentFnName + '){' + body + '};';
-	            resultFn = (new Function('lib', 'helpers', body))(_library, _helpers);
+	            resultFn = (new Function('lib', 'helpers', 'binder', body))(_library, _helpers);
 	        } else {
-	            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _options.renderContentFnName, body);
+	            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _options.renderContentFnName, 'binder',body);
 	        }
 	        return resultFn;
 	    }

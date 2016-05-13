@@ -305,6 +305,43 @@
         </div>
     </script>
 
+    <script type="text/html" id="test-0_7_3">
+        <%
+        /* be careful, you can't use 'binder' function name or variables inside ejs */
+        /* object constructor for custom binding */
+        function obj(data) {
+            this.data = data;
+            this.foo = function(content){
+                content(this.data.amount);
+            }
+        }
+        %>
+        <div>
+            <::obj amount="0">
+                <span>amount<%= ':' + parent %></span>
+            </::obj>
+        </div>
+    </script>
+
+    <script type="text/html" id="test-0_7_4">
+        <%
+        /* be careful, you can't use 'binder' function name or variables inside ejs */
+        /* object constructor for custom binding */
+        function obj(data) {
+            this.data = data;
+            this.foo = function(content){
+               content(this.data.amount);
+            }
+        }
+        %>
+        <div>
+            <::obj amount="<%= this.amount%>">
+                <span>amount<%= ':' + parent %></span>
+                <span>amount from context<%= ':' + this.amount %></span>
+            </::obj>
+        </div>
+    </script>
+
 </div>
 
 <!--test functionality-->

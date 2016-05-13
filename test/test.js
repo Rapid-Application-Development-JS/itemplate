@@ -414,7 +414,7 @@ describe("iTemplate Tests", function () {
 
         expect(container.innerHTML).to.equal(innerHTML);
     });
-    
+
     it("0.6.2: skip functionality 'false'", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_6_2').textContent, IncrementalDOM);
         var innerHTML = '<div><div>AAA</div></div>';
@@ -440,32 +440,67 @@ describe("iTemplate Tests", function () {
 
         IncrementalDOM.patch(container, templateFn, {skipRoot: false, skipChild: false});
         expect(container.innerHTML).to.equal(innerHTML);
-        
+
         container.querySelector('span').innerHTML = 'CCC';
 
         IncrementalDOM.patch(container, templateFn, {skipRoot: true, skipChild: false});
         expect(container.innerHTML).to.equal(afterModification);
     });
 
-    it("0.7.1: inline helpers", function () {
+    it("0.7.1: bind function to tag", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_7_1').textContent, IncrementalDOM);
         var innerHTML = '<ul><li>item:0</li><li>item:1</li></ul>';
-        
+
         IncrementalDOM.patch(container, templateFn);
-        
+
         expect(container.innerHTML).to.equal(innerHTML);
     });
 
-    it("0.7.2: inline helpers context", function () {
+    it("0.7.2: bind function to tag - context", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_7_2').textContent, IncrementalDOM);
         var context = {
             name: 'my-name',
             clazz: 'my-class'
         };
         var innerHTML = '<div><span class="my-class">my-name</span></div>';
-        
+
         IncrementalDOM.patch(container, templateFn.bind(context));
-        
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.7.3: custom binding to tag", function () {
+        var templateFn = itemplate.compile(document.querySelector('#test-0_7_3').textContent);
+        var innerHTML = '<div><span>amount:0</span></div>';
+
+        // be careful, you can't use 'binder' function name inside ejs 
+        function binder(fn, data, content) {
+            var obj = new fn(data);
+            return obj.foo(content);
+        }
+
+        IncrementalDOM.patch(container, function (data) {
+            templateFn(data, IncrementalDOM, itemplate.helpers, null, binder);
+        });
+
+        expect(container.innerHTML).to.equal(innerHTML);
+    });
+
+    it("0.7.4: custom binding to tag - context", function () {
+        var context = {amount: 0};
+        var templateFn = itemplate.compile(document.querySelector('#test-0_7_4').textContent).bind(context);
+        var innerHTML = '<div><span>amount:0</span><span>amount from context:0</span></div>';
+
+        // be careful, you can't use 'binder' function name inside ejs
+        function binder(fn, data, content) {
+            var obj = new fn(data);
+            return obj.foo(content);
+        }
+
+        IncrementalDOM.patch(container, function (data) {
+            templateFn(data, IncrementalDOM, itemplate.helpers, null, binder);
+        });
+
         expect(container.innerHTML).to.equal(innerHTML);
     });
 

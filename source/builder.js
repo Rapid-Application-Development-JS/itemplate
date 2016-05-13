@@ -189,13 +189,7 @@ function writeText(text) {
 }
 
 function helperOpen(helperName, attrs) {
-    var fnName = 'helpers["' + helperName + '"]';
-
-    if (helperName.indexOf(_options.inlinePre) === 0) {
-        fnName = helperName.replace(_options.inlinePre, '');
-    }
-
-    stack.push(fnName + '(' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
 }
 
 function helperClose() {
@@ -203,7 +197,20 @@ function helperClose() {
 }
 
 function isHelperTag(tagName) {
-    return localComponentNames.indexOf(tagName) !== -1 || helpers.indexOf(tagName) !== -1 || tagName.indexOf(_options.inlinePre) === 0;
+    return localComponentNames.indexOf(tagName) !== -1 || helpers.indexOf(tagName) !== -1;
+}
+
+function binderOpen(helperName, attrs) {
+    var fnName = helperName.replace(_options.binderPre, '');
+    stack.push('binder(' + fnName + ',' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+}
+
+function binderClose() {
+    stack.push('}.bind(this));');
+}
+
+function isTagBinded(tagName) {
+    return tagName.indexOf(_options.binderPre) === 0;
 }
 
 // TODO: Clarify logic.
@@ -218,6 +225,9 @@ function writeAndCloseOpenState(isClosed) {
 
         if (isHelperTag(state.tag)) { // helper case
             helperOpen(state.tag, state.attributes);
+            isShouldClose = isClosed;
+        } else if (isTagBinded(state.tag)) {
+            binderOpen(state.tag, state.attributes);
             isShouldClose = isClosed;
         } else if (isClosed || _options.voidRequireTags.indexOf(state.tag) !== -1) { // void mode
             writeCommand(Command.elementVoid, state.tag, state.attributes, isRoot);
@@ -278,6 +288,8 @@ Builder.prototype.write = function (command) {
 
                     if (isHelperTag(tag))
                         helperClose();
+                    else if (isTagBinded(tag))
+                        binderClose();
                     else
                         writeCommand(Command.elementClose, tag);
                 }

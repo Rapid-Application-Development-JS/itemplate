@@ -51,7 +51,8 @@ function createWrapper() {
                 'var currentElement = lib.currentElement;',
                 'var text = lib.text;',
                 'var elementVoid = lib.elementVoid;',
-                'var refs = {};'
+                'var refs = {};',
+                'binder = binder || function(fn, data, content){ return fn(data, content); };'
             ].join(eol) + eol;
 
         for (var key in holder) { // collect static arrays for function
@@ -62,9 +63,9 @@ function createWrapper() {
 
         if (_library) {
             body = 'return function(' + _options.parameterName + ', ' + _options.renderContentFnName + '){' + body + '};';
-            resultFn = (new Function('lib', 'helpers', body))(_library, _helpers);
+            resultFn = (new Function('lib', 'helpers', 'binder', body))(_library, _helpers);
         } else {
-            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _options.renderContentFnName, body);
+            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _options.renderContentFnName, 'binder', body);
         }
         return resultFn;
     }
