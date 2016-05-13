@@ -473,7 +473,6 @@ describe("iTemplate Tests", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_7_3').textContent);
         var innerHTML = '<div><span>amount:0</span></div>';
 
-        // be careful, you can't use 'binder' function name inside ejs 
         function binder(fn, data, content) {
             var obj = new fn(data);
             return obj.foo(content);
@@ -491,7 +490,6 @@ describe("iTemplate Tests", function () {
         var templateFn = itemplate.compile(document.querySelector('#test-0_7_4').textContent).bind(context);
         var innerHTML = '<div><span>amount:0</span><span>amount from context:0</span></div>';
 
-        // be careful, you can't use 'binder' function name inside ejs
         function binder(fn, data, content) {
             var obj = new fn(data);
             return obj.foo(content);

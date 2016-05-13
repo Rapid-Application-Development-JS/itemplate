@@ -1,6 +1,6 @@
 {
   "name": "idom-template",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Library for converting templates into Incremental DOM rendering functions",
   "main": "bin/itemplate.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "chai": "^3.5.0",
     "chai-fuzzy": "^1.6.0",
     "fs": "0.0.2",
-    "incremental-dom": "^0.3.0",
+    "incremental-dom": "^0.4.1",
     "mocha": "^2.4.5",
     "mocha-phantomjs": "^4.0.2",
     "phantomjs": "^2.1.3",

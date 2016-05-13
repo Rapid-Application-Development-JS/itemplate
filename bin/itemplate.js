@@ -794,7 +794,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function helperOpen(helperName, attrs) {
-	    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+	    stack.push(Command.helpers + '["' + helperName + '"](' + decodeAttrs(attrs) + ', function (' 
+	        + _options.parentParameterName + '){');
 	}
 
 	function helperClose() {
@@ -807,7 +808,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function binderOpen(helperName, attrs) {
 	    var fnName = helperName.replace(_options.binderPre, '');
-	    stack.push('binder(' + fnName + ',' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+	    stack.push(Command.binder + '(' + fnName + ',' + decodeAttrs(attrs) + ', function (' 
+	        + _options.parentParameterName + '){');
 	}
 
 	function binderClose() {
@@ -937,20 +939,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _options = __webpack_require__(1);
 
 	var Command = { // incremental DOM commands
-	    elementOpen: 'elementOpen("',
-	    elementVoid: 'elementVoid("',
-	    elementClose: 'elementClose("',
+	    helpers: '_h',
+	    binder: '_b',
+	    elementOpen: '_o("',
+	    elementClose: '_c("',
+	    elementVoid: '_v("',
 	    saveRef: function (name, command) {
-	        return 'refs[' + name + '] = ' + command;
+	        return '_r[' + name + '] = ' + command;
 	    },
-	    text: 'text(',
+	    text: '_t(',
 	    close: ');\n',
 	    startSkipContent: function (flag) {
 	        // compile static values
 	        flag = (flag === '"false"') ? false : flag;
 	        flag = (flag === '"true"') ? true : flag;
 
-	        return 'if(' + flag + '){lib.skip();}else{';
+	        return 'if(' + flag + '){_l.skip();}else{';
 	    },
 	    endSkipContent: '}'
 	};
@@ -961,7 +965,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var eol = '\n';
 
 	    function wrapFn(body) {
-	        var returnValue = eol + ' return refs;';
+	        var returnValue = eol + ' return _r;';
 
 	        var prepareError = 'var TE=function(m,n,o){this.original=o;this.name=n;(o)?this.stack=this.original.stack:' +
 	            'this.stack=null;this.message=o.message+m;};var CE=function(){};CE.prototype=Error.prototype;' +
@@ -982,13 +986,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function wrapper(stack, holder) {
 	        var resultFn;
 	        var variables = [
-	                'var elementOpen = lib.elementOpen;',
-	                'var elementClose = lib.elementClose;',
-	                'var currentElement = lib.currentElement;',
-	                'var text = lib.text;',
-	                'var elementVoid = lib.elementVoid;',
-	                'var refs = {};',
-	                'binder = binder || function(fn, data, content){ return fn(data, content); };'
+	                'var _o = _l.elementOpen;',
+	                'var _c = _l.elementClose;',
+	                'var _v = _l.elementVoid;',
+	                'var _t = _l.text;',
+	                'var _r = {};',
+	                '_b = _b || function(fn, data, content){ return fn(data, content); };'
 	            ].join(eol) + eol;
 
 	        for (var key in holder) { // collect static arrays for function
@@ -998,10 +1001,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var body = variables + wrapFn(stack.join(glue));
 
 	        if (_library) {
-	            body = 'return function(' + _options.parameterName + ', ' + _options.renderContentFnName + '){' + body + '};';
-	            resultFn = (new Function('lib', 'helpers', 'binder', body))(_library, _helpers);
+	            body = 'return function(' + _options.parameterName + ', ' + _options.renderContentFnName + ', _b){' + body + '};';
+	            resultFn = (new Function('_l', '_h', body))(_library, _helpers);
 	        } else {
-	            resultFn = new Function(_options.parameterName, 'lib', 'helpers', _options.renderContentFnName, 'binder',body);
+	            resultFn = new Function(_options.parameterName, '_l', '_h', _options.renderContentFnName, '_b', body);
 	        }
 	        return resultFn;
 	    }

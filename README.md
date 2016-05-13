@@ -6,7 +6,7 @@ Library for converting your HTML or templates ([ejs](http://www.embeddedjs.com/)
 
 *You can use this library with any framework with you want.*
 
-> New functionality is available. The documentation going to be updated, but now, see Tests.
+> <span style="color:red;"> New functionality is available. The documentation going to be updated, but now, see Tests.</span>
 
 ###Example
 The simplest example of use looks like this, **html**:

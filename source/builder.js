@@ -189,7 +189,8 @@ function writeText(text) {
 }
 
 function helperOpen(helperName, attrs) {
-    stack.push('helpers["' + helperName + '"](' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+    stack.push(Command.helpers + '["' + helperName + '"](' + decodeAttrs(attrs) + ', function (' 
+        + _options.parentParameterName + '){');
 }
 
 function helperClose() {
@@ -202,7 +203,8 @@ function isHelperTag(tagName) {
 
 function binderOpen(helperName, attrs) {
     var fnName = helperName.replace(_options.binderPre, '');
-    stack.push('binder(' + fnName + ',' + decodeAttrs(attrs) + ', function (' + _options.parentParameterName + '){');
+    stack.push(Command.binder + '(' + fnName + ',' + decodeAttrs(attrs) + ', function (' 
+        + _options.parentParameterName + '){');
 }
 
 function binderClose() {
