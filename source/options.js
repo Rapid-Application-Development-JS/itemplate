@@ -30,6 +30,7 @@ var _options = {
     staticArray: 'static-array',
     nonStaticAttributes: ['id', 'name', 'ref'],
     binderPre: '::',
+    helperPre: 'i-',
     parameterName: 'data',
     parentParameterName: 'parent',
     renderContentFnName: 'content',

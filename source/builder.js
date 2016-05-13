@@ -198,7 +198,9 @@ function helperClose() {
 }
 
 function isHelperTag(tagName) {
-    return localComponentNames.indexOf(tagName) !== -1 || helpers.indexOf(tagName) !== -1;
+    return localComponentNames.indexOf(tagName) !== -1 
+        || helpers.indexOf(tagName) !== -1
+        || tagName.indexOf(_options.helperPre) === 0;
 }
 
 function binderOpen(helperName, attrs) {

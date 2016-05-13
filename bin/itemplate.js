@@ -137,6 +137,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    staticArray: 'static-array',
 	    nonStaticAttributes: ['id', 'name', 'ref'],
 	    binderPre: '::',
+	    helperPre: 'i-',
 	    parameterName: 'data',
 	    parentParameterName: 'parent',
 	    renderContentFnName: 'content',
@@ -803,7 +804,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function isHelperTag(tagName) {
-	    return localComponentNames.indexOf(tagName) !== -1 || helpers.indexOf(tagName) !== -1;
+	    return localComponentNames.indexOf(tagName) !== -1 
+	        || helpers.indexOf(tagName) !== -1
+	        || tagName.indexOf(_options.helperPre) === 0;
 	}
 
 	function binderOpen(helperName, attrs) {
